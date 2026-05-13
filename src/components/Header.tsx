@@ -103,7 +103,7 @@ const Header = () => {
               // fetchPriority="high"
             />
             <h5 className="text-gray-600 text-sm mt-1 tracking-wide">
-              Growing Green, Connecting Worlds
+              Growing Green, Connecting Worlds, Sustaining Life
             </h5>
           </Link>
 
