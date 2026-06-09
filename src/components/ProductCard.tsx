@@ -68,7 +68,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     if (url.includes("/images/uploads/images/")) {
       const filename = url.split("/").pop()?.replace(".png", ".webp") || "";
-      return `${process.env.VITE_BACKEND_URL}/images/${filename}`;
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+      return `${backendUrl}/images/${filename}`;
     }
     return url;
   };

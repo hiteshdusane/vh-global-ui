@@ -22,10 +22,10 @@ const Footer = () => {
             </Link>
             {/* </div> */}
             <p className="text-gray-300 mb-6 leading-relaxed">
-              VHN Global delivers premium nursery and farming plants across
-              India and international markets. With a focus on quality,
-              sustainability, and trust, we make greenery accessible for homes,
-              farms, and landscapes worldwide.
+              VHN Global sources and exports high-quality agricultural products
+              across India and to international markets. We focus on quality,
+              packaging, and logistics to ensure products arrive fresh and
+              market-ready for buyers worldwide.
             </p>
             <div className="flex space-x-4"></div>
           </div>

@@ -11,7 +11,7 @@ import {
   PaginatedResponse,
 } from "../types/api";
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
 
 const api = axios.create({
   baseURL: API_BASE_URL,

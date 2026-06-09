@@ -25,8 +25,7 @@ const Home = () => {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage:
-              "url('https://images.pexels.com/photos/1078736/pexels-photo-1078736.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop')",
+            backgroundImage: "url('/images/farming_products.webp')",
           }}
         ></div>
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/70 to-transparent"></div>
@@ -34,16 +33,16 @@ const Home = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
           <div className="max-w-2xl">
             <h3 className="text-lg font-semibold text-white/80 mb-1 tracking-wide">
-              Growing Green, Connecting Worlds
+              Connecting Markets, Delivering Freshness
             </h3>
             <h1 className="text-5xl lg:text-7xl font-bold mb-4 leading-tight tracking-tight">
-              Aquascaping
-              <span className="text-cyan-300 block">Excellence</span>
+              Global Exporters of
+              <span className="text-cyan-300 block">Fresh Produce</span>
             </h1>
             <p className="text-lg mb-8 text-gray-200 leading-relaxed">
-              At VHN Global, we bring you premium nursery and farming
-              plants—delivered across India and worldwide—making greenery
-              accessible, sustainable, and beautiful for every space.{" "}
+              At VHN Global, we connect growers and buyers worldwide—supplying
+              export-quality fruits, vegetables, pulses, and more with
+              reliability, compliance, and a focus on freshness.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
@@ -69,8 +68,8 @@ const Home = () => {
               Why Choose VHN Global
             </h2>
             <p className="text-xl text-gray-500 max-w-3xl mx-auto">
-              Over 55 years of expertise in aquarium technology and plant
-              cultivation
+              Decades of experience delivering export-quality agricultural
+              products with global reach and trusted logistics
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -78,20 +77,20 @@ const Home = () => {
               {
                 icon: <Leaf className="w-8 h-8 text-emerald-600" />,
                 bg: "bg-emerald-100",
-                title: "Professional & Trustworthy",
-                desc: "VHN Global is a trusted nursery brand delivering premium plants across India and worldwide. From ornamental and indoor plants to farming and landscape solutions, we provide sustainable greenery for every need. Growing nature, growing connections.",
+                title: "Quality & Compliance",
+                desc: "We ensure export-grade quality with strict sorting, packing, and phytosanitary compliance so your products arrive fresh and market-ready.",
               },
               {
                 icon: <Droplets className="w-8 h-8 text-cyan-600" />,
                 bg: "bg-cyan-100",
-                title: "Customer-Friendly & Warm",
-                desc: "At VHN Global, we make it easy to bring nature into your home, farm, or workspace. Our wide range of nursery and farming plants are grown with care and delivered with quality. Together, let’s create a greener tomorrow.",
+                title: "Wide Product Range",
+                desc: "From fresh fruits and vegetables to pulses and specialty crops, our catalog is curated for international buyers and bulk traders.",
               },
               {
                 icon: <Zap className="w-8 h-8 text-yellow-600" />,
                 bg: "bg-yellow-100",
-                title: "Export-Focused & Modern",
-                desc: "VHN Global specializes in exporting high-quality nursery and farming plants, connecting India’s green treasures with the world. With a commitment to freshness, sustainability, and trust, we’re here to grow with you.",
+                title: "Global Logistics",
+                desc: "Our export logistics and partner networks ensure timely shipments with traceability and cold-chain support where required.",
               },
             ].map((feature, idx) => (
               <div
@@ -121,7 +120,7 @@ const Home = () => {
               Product Categories
             </h2>
             <p className="text-xl text-gray-500">
-              Everything you need for professional aquascaping
+              High-quality products ready for export — fruits, vegetables, pulses, grains, and more
             </p>
           </div>
 
@@ -165,61 +164,25 @@ const Home = () => {
       {/* Excellence Section */}
       <section className="py-20 bg-emerald-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="max-w-3xl mx-auto text-center lg:text-left">
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center">
-                From Our Nurseries 
-                <span className="text-emerald-700 block">to the World</span>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                From Farms
+                <span className="text-emerald-700 block">to Global Markets</span>
               </h2>
-              <p className="text-lg text-gray-500 mb-8 leading-relaxed text-center">
-                VHN Global delivers premium nursery and farming plants across India and international markets—making greenery accessible everywhere. <br /> We specialize in live plants that bring freshness, beauty, and sustainability to homes, farms, and landscapes. <br /> From ornamental plants to farming solutions, VHN Global is your reliable source for healthy, export-quality greenery.
+              <p className="text-lg text-gray-500 mb-8 leading-relaxed">
+                VHN Global sources and exports fresh, high-quality produce—connecting growers with international buyers. We focus on quality control, packaging, and logistics to deliver products that meet global market standards.
               </p>
-{/* 
-              <div className="grid sm:grid-cols-3 gap-6 mb-8">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <Award className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="font-bold text-2xl text-emerald-600">55+</div>
-                  <div className="text-sm text-gray-500">Years Experience</div>
-                </div>
-
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-cyan-600 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <Users className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="font-bold text-2xl text-cyan-600">500K+</div>
-                  <div className="text-sm text-gray-500">Happy Customers</div>
-                </div>
-
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-yellow-600 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <Globe className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="font-bold text-2xl text-yellow-600">60+</div>
-                  <div className="text-sm text-gray-500">Countries</div>
-                </div>
-              </div> */}
-
-              <div className="flex justify-center">
-                <Link
-                  to="/company"
-                  className="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors group"
-                >
-                  Learn More
-                  <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
             </div>
 
-            <div className="relative">
-              <img
-                src="/images/nursary-image.jpg"
-                alt="Professional Aquascaping"
-                className="w-full rounded-2xl shadow-2xl"
-              />
-              <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-emerald-600 rounded-xl opacity-20"></div>
-              <div className="absolute -top-6 -right-6 w-24 h-24 bg-cyan-500 rounded-xl opacity-20"></div>
+            <div className="flex justify-center">
+              <Link
+                to="/company"
+                className="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors group"
+              >
+                Learn More
+                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </div>
         </div>
@@ -233,7 +196,7 @@ const Home = () => {
               Featured Products
             </h2>
             <p className="text-xl text-gray-500">
-              Our most popular aquascaping solutions
+              Top export-ready products and popular listings
             </p>
           </div>
 
