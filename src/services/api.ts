@@ -11,7 +11,7 @@ import {
   PaginatedResponse,
 } from "../types/api";
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -147,7 +147,7 @@ export const productApi = {
   },
 
   getImage: (imageName: string): string =>
-    `${API_BASE_URL}api/v1/products/get-image/${imageName}`,
+    `${API_BASE_URL}/api/v1/products/get-image/${imageName}`,
 };
 
 // Product Additional Info API
