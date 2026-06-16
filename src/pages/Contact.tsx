@@ -90,7 +90,7 @@ const Contact = () => {
         <div className="bg-white rounded-xl shadow-sm p-8 mb-8 text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
           <p className="text-xl text-gray-500">
-            Get in touch with our aquascaping experts
+            Get in touch with our agricultural experts
           </p>
         </div>
 
@@ -105,7 +105,7 @@ const Contact = () => {
                 <div className="flex items-start space-x-4">
                   <MapPin className="w-6 h-6 text-emerald-600" />
                   <p className="text-gray-500">
-                    Shewalewadi Road, Hadapsar, Pune, Maharashtra 412307
+                    Pune, Maharashtra 412307
                   </p>
                 </div>
 
@@ -117,22 +117,11 @@ const Contact = () => {
                 <div className="flex items-start space-x-4">
                   <Mail className="w-6 h-6 text-yellow-600" />
                   <a
-                    href="mailto:vhnglobaltrader@gmail.com?subject=Business Inquiry&body=Hello VHN Global Team,"
+                    href="mailto:vhnglobal@gmail.com?subject=Business Inquiry&body=Hello VHN Global Team,"
                     className="text-gray-500 hover:underline"
                   >
-                    vhnglobaltrader@gmail.com
+                    vhnglobal@gmail.com
                   </a>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <Clock className="w-6 h-6 text-green-600" />
-                  <p className="text-gray-500">
-                    Mon–Sat: 9:00 AM – 6:00 PM (IST)
-                    <br />
-                    Sun: Closed
-                    <br />
-                    Current IST Time: {istTime}
-                  </p>
                 </div>
               </div>
             </div>
