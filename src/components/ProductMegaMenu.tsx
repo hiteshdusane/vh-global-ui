@@ -28,22 +28,22 @@ const ProductMegaMenu: React.FC<ProductMegaMenuProps> = ({
     <AnimatePresence>
       {isVisible && (
         <>
-          {/* Invisible bridge to prevent hover gaps */}
-          <div
-            className="w-full h-2 bg-transparent !z-50 relative"
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-          />
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute top-full left-0 w-full bg-white shadow-xl border-t border-gray-100 z-40 rounded-b-[40px]"
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-          >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="absolute left-0 top-full w-full z-40">
+            <div
+              className="h-5 w-full bg-transparent"
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="bg-white shadow-xl border-t border-gray-100 rounded-b-[40px]"
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
+            >
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <div className="grid grid-cols-6 gap-8 mb-8 md:mb-12 lg:mb-16">
                 {mainCategoriesData?.data?.map((category, index) => (
                   <motion.div
@@ -102,26 +102,27 @@ const ProductMegaMenu: React.FC<ProductMegaMenuProps> = ({
                   </motion.div>
                 ))}
               </div>
-              <div className="">
-                <div className="w-full h-[2px] my-4 bg-emerald-600/50" />
-                <Link
-                  to={`/products`}
-                  onClick={onClose}
-                  className="block group"
-                >
-                  <div className="bg-white rounded-lg group flex w-full items-center justify-between">
-                    <h3 className="font-medium text-gray-800 text-base group-hover:text-emerald-700 transition-colors">
-                      Explore All Products
-                    </h3>
-                    <ChevronRight
-                      strokeWidth={2}
-                      className="w-4 h-4 text-gray-800 group-hover:text-emerald-700 transition-colors"
-                    />
-                  </div>
-                </Link>
+                <div className="">
+                  <div className="w-full h-[2px] my-4 bg-emerald-600/50" />
+                  <Link
+                    to={`/products`}
+                    onClick={onClose}
+                    className="block group"
+                  >
+                    <div className="bg-white rounded-lg group flex w-full items-center justify-between">
+                      <h3 className="font-medium text-gray-800 text-base group-hover:text-emerald-700 transition-colors">
+                        Explore All Products
+                      </h3>
+                      <ChevronRight
+                        strokeWidth={2}
+                        className="w-4 h-4 text-gray-800 group-hover:text-emerald-700 transition-colors"
+                      />
+                    </div>
+                  </Link>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

@@ -22,9 +22,9 @@ const Header = () => {
   const handleMegaMenuEnter = () => {
     if (hoverTimeout) {
       clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
     }
 
-    setHoverTimeout(null);
     setIsMegaMenuVisible(true);
   };
 
@@ -35,7 +35,8 @@ const Header = () => {
 
     const timeoutId = setTimeout(() => {
       setIsMegaMenuVisible(false);
-    }, 400); // smoother closing
+      setHoverTimeout(null);
+    }, 250);
 
     setHoverTimeout(timeoutId);
   };
@@ -114,12 +115,16 @@ const Header = () => {
               onMouseEnter={handleMegaMenuEnter}
               onMouseLeave={handleMegaMenuLeave}
             >
-              <Link
-                to="/products"
-                className="text-gray-500 hover:text-emerald-700 font-bold transition-colors flex items-center py-2"
-              >
-                Products
-              </Link>
+              <div className="px-3 py-2 -mx-3">
+                <Link
+                  to="/products"
+                  onFocus={handleMegaMenuEnter}
+                  onBlur={handleMegaMenuLeave}
+                  className="text-gray-500 hover:text-emerald-700 font-bold transition-colors flex items-center"
+                >
+                  Products
+                </Link>
+              </div>
             </div>
             {/* <div
               className="relative"
