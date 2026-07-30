@@ -17,6 +17,15 @@ const Home = () => {
   const { data: mainCategoriesData } = useMainCategories();
   const { data: featuredProductsData } = useProducts({ page: 0, pageSize: 8 });
 
+  const getCategoryImageUrl = (categoryName: string) => {
+    const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+    const fileName = categoryName
+      .toLowerCase()
+      .replace(/ & /g, "_")
+      .replace(/ /g, "_");
+    return `${backendUrl}/images/${fileName}.jpg`;
+  };
+
   return (
     <div>
       {/* Hero Section */}
@@ -134,12 +143,12 @@ const Home = () => {
                 >
                   <div className="relative overflow-hidden mx-auto rounded-xl mb-4 w-[90%]">
                     <img
-                      src={`/images/${category.name
-                        .toLowerCase()
-                        .replace(/ & /g, "_")
-                        .replace(/ /g, "_")}.webp`}
+                      src={getCategoryImageUrl(category.name)}
                       alt={category.name}
                       className="w-full h-[370px] object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "/images/nursary-product.png";
+                      }}
                     />
                   </div>
                   <div className="text-center">
