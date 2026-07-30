@@ -23,7 +23,7 @@ const Home = () => {
       .toLowerCase()
       .replace(/ & /g, "_")
       .replace(/ /g, "_");
-    return `${backendUrl}/images/${fileName}.jpg`;
+    return `${backendUrl}/api/v1/products/get-image/${fileName}.jpg`;
   };
 
   return (
