@@ -121,55 +121,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Product Categories */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-heading font-extrabold text-gray-900 mb-3">
-              Product Categories
-            </h2>
-            <p className="text-xl text-gray-500">
-              High-quality products ready for export — fruits, vegetables, pulses, grains, and more
-            </p>
-          </div>
-
-          {mainCategoriesData?.data ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {mainCategoriesData.data.slice(0, 6).map((category) => (
-                <Link
-                  to={`/products?main=${category.productMainCategoryId}`} 
-                  key={category.productMainCategoryId}
-                  className="group cursor-pointer"
-                >
-                  <div className="relative overflow-hidden mx-auto rounded-xl mb-4 w-[90%]">
-                    <img
-                      src={getCategoryImageUrl(category.name)}
-                      alt={category.name}
-                      className="w-full h-[370px] object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = "/images/nursary-product.png";
-                      }}
-                    />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-emerald-700 transition-colors">
-                      {category.name}
-                    </h3>
-                    <p className="text-gray-500 text-sm">
-                      {category.shortDescription}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="flex justify-center">
-              <LoadingSpinner size="lg" />
-            </div>
-          )}
-        </div>
-      </section>
-
       {/* Excellence Section */}
       <section className="py-20 bg-emerald-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
