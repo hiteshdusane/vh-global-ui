@@ -212,14 +212,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </p>
           )}
 
-          <div className="text-xs text-gray-500 mb-4">
-            Min. Quantity: {product.minimumQuantity}
-          </div>
-
-          <div className="flex justify-between items-center pt-4 border-t">
-            <span className="text-emerald-600 font-bold text-xl">
-              {formatPrice(product.price)}
-            </span>
+          <div className="flex justify-end items-center pt-4 border-t">
             <button
               onClick={() => setIsContactModalOpen(true)}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg"
@@ -377,18 +370,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 </div>
                 {/* ========================== */}
 
-                <div className="text-sm text-gray-500 mb-4">
-                  Minimum Order Quantity:{" "}
-                  <span className="font-medium text-gray-800">
-                    {product.minimumQuantity}
-                  </span>
-                </div>
-
-                <div className="mt-auto flex items-center justify-between">
-                  <span className="text-emerald-600 font-bold text-2xl">
-                    {formatPrice(product.price)}
-                  </span>
-
+                <div className="mt-auto flex items-center justify-center">
                   <button
                     onClick={() => {
                       setIsDetailsModalOpen(false);

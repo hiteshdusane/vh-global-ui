@@ -340,14 +340,7 @@ const ProductPage: React.FC = () => {
                 {product.productSubCategory.name}
               </div>
 
-              <div className="text-3xl font-bold text-emerald-600 mb-4">
-                {formatPrice(product.price)}
-              </div>
-
-              <div className="flex items-center gap-2 mb-6 text-sm text-gray-500">
-                <Package className="w-4 h-4" />
-                Minimum quantity: {product.minimumQuantity}
-              </div>
+              {/* Price and minimum quantity hidden by request */}
 
               {product.shortDescription && (
                 <p className="text-gray-600 mb-4">{product.shortDescription}</p>
@@ -361,7 +354,7 @@ const ProductPage: React.FC = () => {
 
               <button
                 onClick={() => setIsEnquiryOpen(true)}
-                className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg transition"
+                className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg transition mx-auto block"
               >
                 Enquire Now
               </button>

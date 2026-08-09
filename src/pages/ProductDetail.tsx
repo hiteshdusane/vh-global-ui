@@ -208,16 +208,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                <div className="text-4xl font-bold text-emerald-600 mb-6">
-                  {formatPrice(product.price)}
-                </div>
-
-                <div className="flex items-center space-x-2 mb-6 p-4 bg-gray-50 rounded-lg">
-                  <Package className="w-5 h-5 text-gray-500" />
-                  <span className="text-sm text-gray-500">
-                    Minimum quantity: {product.minimumQuantity} units
-                  </span>
-                </div>
+                {/* Price and minimum quantity hidden by request */}
               </div>
 
               {product.shortDescription && (
@@ -236,7 +227,7 @@ const ProductDetail = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Quantity
                 </label>
-                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4">
                   <div className="flex items-center border border-gray-300 rounded-lg">
                     <button
                       onClick={() =>
@@ -258,9 +249,7 @@ const ProductDetail = () => {
                       +
                     </button>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    Total: {formatPrice(product.price * quantity)}
-                  </span>
+                  {/* Total price hidden by request */}
                 </div>
               </div>
 

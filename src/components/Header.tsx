@@ -24,7 +24,7 @@ const Header = () => {
       clearTimeout(hoverTimeout);
       setHoverTimeout(null);
     }
-
+    console.debug("MegaMenu: enter");
     setIsMegaMenuVisible(true);
   };
 
@@ -33,10 +33,12 @@ const Header = () => {
       clearTimeout(hoverTimeout);
     }
 
+    console.debug("MegaMenu: leave scheduled");
     const timeoutId = setTimeout(() => {
+      console.debug("MegaMenu: closing");
       setIsMegaMenuVisible(false);
       setHoverTimeout(null);
-    }, 250);
+    }, 400);
 
     setHoverTimeout(timeoutId);
   };
@@ -108,24 +110,23 @@ const Header = () => {
             </h5>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8 md:space-x-16">
-            <div
-              className="relative"
-              onMouseEnter={handleMegaMenuEnter}
-              onMouseLeave={handleMegaMenuLeave}
-            >
-              <div className="px-3 py-2 -mx-3">
-                <Link
-                  to="/products"
-                  onFocus={handleMegaMenuEnter}
-                  onBlur={handleMegaMenuLeave}
-                  className="text-gray-500 hover:text-emerald-700 font-bold transition-colors flex items-center"
-                >
-                  Products
-                </Link>
+          {/* Desktop Navigation + Mega Menu (shared hover area) */}
+          <div
+            className="relative w-full"
+            onMouseEnter={handleMegaMenuEnter}
+            onMouseLeave={handleMegaMenuLeave}
+          >
+            <nav className="hidden md:flex space-x-8 md:space-x-16">
+              <div>
+                <div className="px-3 py-2 -mx-3">
+                  <Link
+                    to="/products"
+                    className="text-gray-500 hover:text-emerald-700 font-bold transition-colors flex items-center"
+                  >
+                    Products
+                  </Link>
+                </div>
               </div>
-            </div>
             {/* <div
               className="relative"
               onMouseEnter={handleCategoriesMenuEnter}
@@ -173,13 +174,14 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Product Menu */}
-        <ProductMegaMenu
-          isVisible={isMegaMenuVisible}
-          onClose={() => setIsMegaMenuVisible(false)}
-          onMouseEnter={handleMegaMenuEnter}
-          onMouseLeave={handleMegaMenuLeave}
-        />
+            {/* Product Menu */}
+            <ProductMegaMenu
+              isVisible={isMegaMenuVisible}
+              onClose={() => setIsMegaMenuVisible(false)}
+              onMouseEnter={handleMegaMenuEnter}
+              onMouseLeave={handleMegaMenuLeave}
+            />
+          </div>
 
         {/* Categories Menu */}
         {/* <AnimatePresence>

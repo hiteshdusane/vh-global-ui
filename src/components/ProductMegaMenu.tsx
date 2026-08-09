@@ -28,20 +28,18 @@ const ProductMegaMenu: React.FC<ProductMegaMenuProps> = ({
     <AnimatePresence>
       {isVisible && (
         <>
-          <div className="absolute left-0 top-full w-full z-40">
-            <div
-              className="h-5 w-full bg-transparent"
-              onMouseEnter={onMouseEnter}
-              onMouseLeave={onMouseLeave}
-            />
+          <div
+            className="absolute left-0 top-full w-full z-60"
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+          >
+            <div className="h-8 w-full bg-white" />
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="bg-white shadow-xl border-t border-gray-100 rounded-b-[40px]"
-              onMouseEnter={onMouseEnter}
-              onMouseLeave={onMouseLeave}
+              className="bg-white shadow-xl border-t border-gray-100 rounded-b-[40px] z-60"
             >
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <div className="grid grid-cols-6 gap-8 mb-8 md:mb-12 lg:mb-16">

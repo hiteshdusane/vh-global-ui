@@ -135,14 +135,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
               {product.productSubCategory.name}
             </div>
 
-            <div className="text-3xl font-bold text-emerald-600 mb-4">
-              {formatPrice(product.price)}
-            </div>
-
-            <div className="flex items-center gap-2 mb-6 text-sm text-gray-500">
-              <Package className="w-4 h-4" />
-              Minimum quantity: {product.minimumQuantity}
-            </div>
+            {/* Price and minimum quantity hidden by request */}
 
             {product.shortDescription && (
               <p className="text-gray-600 mb-4">
