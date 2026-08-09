@@ -168,7 +168,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <>
       <div
-        className={`bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 group ${
+        className={`bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 group h-full ${
           viewMode === "list" ? "flex" : ""
         }`}
       >
@@ -207,12 +207,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           {product.shortDescription && (
-            <p className="text-gray-500 mb-4 text-sm">
+            <p className="text-gray-500 mb-4 text-sm flex-1">
               {product.shortDescription}
             </p>
           )}
 
-          <div className="flex justify-end items-center pt-4 border-t">
+          <div className="mt-auto flex items-center justify-center pt-4 border-t">
             <button
               onClick={() => setIsContactModalOpen(true)}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg"

@@ -117,10 +117,10 @@ const Contact = () => {
                 <div className="flex items-start space-x-4">
                   <Mail className="w-6 h-6 text-yellow-600" />
                   <a
-                    href="mailto:vhnglobal@gmail.com?subject=Business Inquiry&body=Hello VHN Global Team,"
+                    href="mailto:info@vhnglobal.com?subject=Business Inquiry&body=Hello VHN Global Team,"
                     className="text-gray-500 hover:underline"
                   >
-                    vhnglobal@gmail.com
+                    info@vhnglobal.com
                   </a>
                 </div>
               </div>

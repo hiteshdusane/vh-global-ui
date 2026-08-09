@@ -24,7 +24,6 @@ const Header = () => {
       clearTimeout(hoverTimeout);
       setHoverTimeout(null);
     }
-    console.debug("MegaMenu: enter");
     setIsMegaMenuVisible(true);
   };
 
@@ -33,9 +32,7 @@ const Header = () => {
       clearTimeout(hoverTimeout);
     }
 
-    console.debug("MegaMenu: leave scheduled");
     const timeoutId = setTimeout(() => {
-      console.debug("MegaMenu: closing");
       setIsMegaMenuVisible(false);
       setHoverTimeout(null);
     }, 400);
@@ -93,7 +90,7 @@ const Header = () => {
       </div> */}
       {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
+        <div className="flex justify-between items-center py-2">
           {/* Logo */}
           <Link
             to="/"
@@ -102,10 +99,10 @@ const Header = () => {
             <img
               src="/images/logo.webp"
               alt="VHN Global Logo"
-              className="h-16 w-auto ml-1"
+              className="h-12 w-auto ml-1"
               // fetchPriority="high"
             />
-            <h5 className="text-gray-600 text-sm mt-1 tracking-wide">
+            <h5 className="text-gray-600 text-xs mt-0 tracking-wide">
               Connecting Markets, Delivering Freshness
             </h5>
           </Link>
