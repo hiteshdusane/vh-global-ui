@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        heading: ["Domine", "serif"],
+        heading: ["Manrope", "sans-serif"],
         body: ["Manrope", "sans-serif"],
       },
     },

@@ -28,7 +28,7 @@ const ProductDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size="lg" />
           <p className="mt-4 text-gray-500">Loading product details...</p>
@@ -39,7 +39,7 @@ const ProductDetail = () => {
 
   if (error || !productData?.data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <ErrorMessage
           message="Failed to load product details."
           onRetry={refetch}
@@ -106,10 +106,10 @@ const ProductDetail = () => {
   ].filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
-        <div className="flex items-center space-x-2 mb-8 text-sm">
+        <div className="flex flex-wrap items-center gap-2 mb-8 text-sm">
           <Link
             to="/"
             className="text-gray-500 hover:text-emerald-600 transition-colors"
@@ -144,20 +144,20 @@ const ProductDetail = () => {
           Back to Products
         </Link>
 
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="grid lg:grid-cols-2 gap-8 p-8">
+        <div className="glass-panel rounded-2xl shadow-lg overflow-hidden">
+          <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 p-5 sm:p-8">
             {/* Images */}
             <div>
               <div className="mb-4">
                 <img
                   src={getImageUrl(allImages[selectedImageIndex])}
                   alt={product.name}
-                  className="w-full h-96 object-cover rounded-xl"
+                  className="w-full h-64 sm:h-96 object-cover rounded-xl"
                 />
               </div>
 
               {allImages.length > 1 && (
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {allImages.map((imageUrl, index) => (
                     <button
                       key={index}
@@ -276,7 +276,7 @@ const ProductDetail = () => {
 
           {/* Detailed Description */}
           {product.longDescription && (
-            <div className="border-t border-gray-200 p-8">
+            <div className="border-t border-gray-200 p-5 sm:p-8">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">
                 Detailed Information
               </h3>

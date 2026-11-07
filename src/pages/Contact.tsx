@@ -1,253 +1,157 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from "react";
-import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import { ArrowUpRight, CheckCircle2, Globe2, Leaf, Loader2, Mail, MapPin, Phone, Send } from "lucide-react";
 
-const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    contact: "",
-    subject: "",
-    message: "",
-  });
+const initialForm = { name: "", email: "", contact: "", subject: "product-info", message: "" };
+const subjects = [
+  { value: "product-info", label: "Product information" },
+  { value: "dealer-inquiry", label: "Bulk & dealer enquiry" },
+  { value: "technical-support", label: "Technical support" },
+  { value: "consultation", label: "General consultation" },
+];
 
-  const subjects = [
-    { value: "product-info", label: "Product Information" },
-    { value: "technical-support", label: "Technical Support" },
-    { value: "dealer-inquiry", label: "Dealer Inquiry" },
-    { value: "consultation", label: "Consultation" },
-  ];
+export default function Contact() {
+  const [formData, setFormData] = useState(initialForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  const [open, setOpen] = useState(false);
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
+    setStatus(null);
+  };
 
-  const [status, setStatus] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const appsScriptUrl = import.meta.env.VITE_APP_SCRIPT_EXCEL_URL || "";
-
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+    const endpoint = import.meta.env.VITE_APP_SCRIPT_EXCEL_URL?.trim();
+    if (!endpoint) {
+      setStatus({ type: "error", message: "The enquiry form is temporarily unavailable. Please email info@vhnglobal.com or call +91 72768 00399 to reach us directly." });
+      return;
+    }
+    setIsSubmitting(true);
+    setStatus(null);
     try {
-      const res = await fetch(appsScriptUrl, {
+      // Apps Script uses an opaque response; it cannot confirm delivery to the inbox.
+      await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain;charset=UTF-8" },
         body: JSON.stringify(formData),
         mode: "no-cors",
       });
-
-      if (res.status === 200 || res.type === "opaque") {
-        setStatus({
-          type: "success",
-          message: "Your message has been sent successfully!",
-        });
-        setFormData({
-          name: "",
-          email: "",
-          contact: "",
-          subject: "",
-          message: "",
-        });
-      } else {
-        setStatus({
-          type: "error",
-          message: "There was an error sending your message.",
-        });
-      }
+      setStatus({ type: "success", message: "Your enquiry has been submitted. Thank you for connecting with VHN Global." });
+      setFormData(initialForm);
     } catch {
-      setStatus({
-        type: "error",
-        message: "Network error. Please try again later.",
-      });
+      setStatus({ type: "error", message: "We couldn’t submit your enquiry. Please try again or email info@vhnglobal.com." });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setTimeout(() => setStatus(null), 5000);
   };
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const istTime = new Date().toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 pt-[130px]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-xl shadow-sm p-8 mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
-          <p className="text-xl text-gray-500">
-            Get in touch with our agricultural experts
-          </p>
-        </div>
+    <div className="contact-page">
+      <div className="contact-orb contact-orb-green" aria-hidden="true" />
+      <div className="contact-orb contact-orb-sand" aria-hidden="true" />
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="contact-intro" aria-labelledby="contact-heading" data-reveal>
+          <div>
+            <span className="section-label">Contact VHN Global</span>
+            <h1 id="contact-heading">Let’s grow<br /><span>something great.</span></h1>
+          </div>
+          <div className="contact-intro-note">
+            <span className="contact-world-icon"><Globe2 className="w-5 h-5" /></span>
+            <p>Rooted in India. Connected worldwide.<br /><span>Let’s find the right growing solution for you.</span></p>
+          </div>
+        </section>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-              <h2 className="text-2xl font-extrabold text-gray-900 mb-6">
-                Get in Touch
-              </h2>
-
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <MapPin className="w-6 h-6 text-emerald-600" />
-                  <p className="text-gray-500">
-                    Pune, Maharashtra 412307
-                  </p>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <Phone className="w-6 h-6 text-cyan-600" />
-                  <p className="text-gray-500">+91-7276800399</p>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <Mail className="w-6 h-6 text-yellow-600" />
-                  <a
-                    href="mailto:info@vhnglobal.com?subject=Business Inquiry&body=Hello VHN Global Team,"
-                    className="text-gray-500 hover:underline"
-                  >
-                    info@vhnglobal.com
-                  </a>
+        <div className="contact-grid">
+          <aside className="contact-sidebar" aria-label="Contact information">
+            <div className="contact-story" data-reveal>
+              <img src="/images/cocopeat-drying-yard.png" alt="Cocopeat drying yard concept with coconut palms and compressed blocks" className="contact-story-image" />
+              <div className="contact-story-shade" aria-hidden="true" />
+              <div className="contact-story-content">
+                <span className="contact-photo-badge"><Leaf className="w-3.5 h-3.5" /> Naturally connected</span>
+                <div className="contact-story-caption">
+                  <span className="text-xs uppercase tracking-[0.18em] text-emerald-100">From coconut to cultivation</span>
+                  <h2>Better conversations.<br />Better beginnings.</h2>
+                  <p>From cocopeat enquiries to your next export partnership, we’re here to help.</p>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                Send us a Message
-              </h2>
-              <p className="text-gray-600 mb-8">
-                We’d love to hear from you. Fill out the form and we’ll get back
-                shortly.
-              </p>
-
-              {status && (
-                <div
-                  className={`mb-6 rounded-lg px-5 py-4 text-sm font-medium ${
-                    status.type === "success"
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-red-50 text-red-700 border border-red-200"
-                  }`}
-                >
-                  {status.message}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <input
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    placeholder="Full Name"
-                    className="input"
-                  />
-
-                  <input
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="Email Address"
-                    className="input"
-                  />
-                </div>
-
-                <input
-                  name="contact"
-                  value={formData.contact}
-                  onChange={handleChange}
-                  placeholder="Contact Number"
-                  className="input"
-                />
-
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(!open)}
-                    className="
-      input flex items-center justify-between
-      text-sm sm:text-base
-      py-3 sm:py-3.5 lg:py-4
-    "
-                  >
-                    {subjects.find((s) => s.value === formData.subject)
-                      ?.label || "Select a subject"}
-                    <span className="ml-2 text-gray-400">▼</span>
-                  </button>
-
-                  {open && (
-                    <ul
-                      className="
-        absolute z-50 mt-2 w-full rounded-lg
-        border border-gray-200 bg-white shadow-lg
-        max-h-60 overflow-y-auto
-      "
-                    >
-                      {subjects.map((item) => (
-                        <li
-                          key={item.value}
-                          onClick={() => {
-                            setFormData({ ...formData, subject: item.value });
-                            setOpen(false);
-                          }}
-                          className="
-            cursor-pointer px-4 py-3 text-sm sm:text-base
-            hover:bg-emerald-50
-          "
-                        >
-                          {item.label}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={6}
-                  placeholder="Write your message here..."
-                  className="input resize-none"
-                />
-
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center rounded-lg bg-emerald-600 
-        px-8 py-4 font-semibold text-white shadow-md transition 
-        hover:bg-emerald-700 hover:shadow-lg 
-        focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                >
-                  Send Message
-                  <Send className="ml-2 h-5 w-5" />
-                </button>
-              </form>
+            <div className="contact-details glass-panel" data-reveal>
+              <p className="contact-small-label">A direct connection</p>
+              <a href="mailto:info@vhnglobal.com" className="contact-detail-link">
+                <span className="contact-detail-icon"><Mail className="w-5 h-5" /></span>
+                <span className="min-w-0"><span className="contact-detail-label">Email our team</span><span className="contact-detail-value break-all">info@vhnglobal.com</span></span>
+                <ArrowUpRight className="contact-link-arrow" aria-hidden="true" />
+              </a>
+              <a href="tel:+917276800399" className="contact-detail-link">
+                <span className="contact-detail-icon"><Phone className="w-5 h-5" /></span>
+                <span><span className="contact-detail-label">Give us a call</span><span className="contact-detail-value">+91 72768 00399</span></span>
+                <ArrowUpRight className="contact-link-arrow" aria-hidden="true" />
+              </a>
+              <a href="https://www.google.com/maps/search/?api=1&query=Pune%2C+Maharashtra+412307%2C+India" target="_blank" rel="noreferrer" className="contact-detail-link">
+                <span className="contact-detail-icon"><MapPin className="w-5 h-5" /></span>
+                <span><span className="contact-detail-label">Find us in India</span><span className="contact-detail-value">Pune, Maharashtra 412307</span></span>
+                <ArrowUpRight className="contact-link-arrow" aria-hidden="true" />
+              </a>
             </div>
-          </div>
+          </aside>
+
+          <section className="contact-form-panel glass-panel" aria-labelledby="enquiry-heading" data-reveal>
+            <div className="contact-form-heading">
+              <div>
+                <p className="contact-small-label">Start a conversation</p>
+                <h2 id="enquiry-heading">Tell us what you have in mind.</h2>
+              </div>
+              <span className="contact-send-icon" aria-hidden="true"><Send className="w-5 h-5" /></span>
+            </div>
+            <p className="contact-form-description">Looking for product details, bulk supply, or a new partnership? Share a few details and let’s take it from there.</p>
+
+            <form onSubmit={handleSubmit} className="contact-form">
+              <fieldset disabled={isSubmitting} className="contact-fieldset">
+                <legend className="sr-only">Your enquiry details</legend>
+                <div className="contact-field-row">
+                  <div className="contact-field">
+                    <label htmlFor="contact-name">Full name <span aria-hidden="true">*</span></label>
+                    <input id="contact-name" name="name" autoComplete="name" value={formData.name} onChange={handleChange} required maxLength={120} placeholder="Your full name" className="input" />
+                  </div>
+                  <div className="contact-field">
+                    <label htmlFor="contact-email">Email address <span aria-hidden="true">*</span></label>
+                    <input id="contact-email" name="email" type="email" autoComplete="email" value={formData.email} onChange={handleChange} required maxLength={254} placeholder="you@company.com" className="input" />
+                  </div>
+                </div>
+                <div className="contact-field">
+                  <label htmlFor="contact-phone">Phone number <span className="contact-optional">Optional</span></label>
+                  <input id="contact-phone" name="contact" type="tel" autoComplete="tel" value={formData.contact} onChange={handleChange} maxLength={40} placeholder="Include your country code" className="input" />
+                </div>
+                <div className="contact-field">
+                  <label htmlFor="contact-subject">What can we help you with? <span aria-hidden="true">*</span></label>
+                  <select id="contact-subject" name="subject" value={formData.subject} onChange={handleChange} required className="input">
+                    {subjects.map((subject) => <option key={subject.value} value={subject.value}>{subject.label}</option>)}
+                  </select>
+                </div>
+                <div className="contact-field">
+                  <label htmlFor="contact-message">Your message <span aria-hidden="true">*</span></label>
+                  <textarea id="contact-message" name="message" value={formData.message} onChange={handleChange} required rows={5} maxLength={5000} placeholder="Tell us about the products, quantities, or destination you’re considering…" className="input" />
+                </div>
+              </fieldset>
+
+              {status && <div role={status.type === "error" ? "alert" : "status"} className={`contact-feedback ${status.type === "success" ? "contact-feedback-success" : "contact-feedback-error"}`}>
+                {status.type === "success" && <CheckCircle2 className="w-5 h-5 shrink-0" />}
+                <p>{status.message}</p>
+              </div>}
+
+              <div className="contact-form-bottom">
+                <p><span aria-hidden="true">*</span> Required fields<br /><span>Your details are used to respond to your enquiry.</span></p>
+                <button type="submit" disabled={isSubmitting} className="btn-primary inline-flex">
+                  {isSubmitting ? <>Sending <Loader2 className="w-4 h-4 animate-spin" /></> : <>Send enquiry <ArrowUpRight className="w-4 h-4" /></>}
+                </button>
+              </div>
+            </form>
+          </section>
         </div>
+        <div className="contact-bottom-note"><Leaf className="w-4 h-4" aria-hidden="true" /><span>Good growth starts with a conversation.</span></div>
       </div>
     </div>
   );
-};
-
-export default Contact;
+}

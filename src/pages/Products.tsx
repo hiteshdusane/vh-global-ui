@@ -1,393 +1,138 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { Filter, Grid, Search, Package } from "lucide-react";
-import {
-  useMainCategories,
-  useSubCategories,
-  useProducts,
-} from "../hooks/useProducts";
+﻿import { useMemo, useState } from "react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Grid, Leaf, List, Package, Search, X } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import CategoryPanel from "../components/CategoryPanel";
 import ProductCard from "../components/ProductCard";
-import ProductModal from "../components/ProductModal";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorMessage from "../components/ErrorMessage";
-import { ProductResponse } from "../types/api";
-import { useSearchParams } from "react-router-dom";
+import { useMainCategories, useSubCategories, useProducts } from "../hooks/useProducts";
 
-const Products = () => {
+const PAGE_SIZE = 6;
+
+export default function Products() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [selectedMainCategory, setSelectedMainCategory] =
-    useState<string>("all");
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProduct, setSelectedProduct] =
-    useState<ProductResponse | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const pageSize = 6;
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const selectedMain = searchParams.get("main") || "all";
+  const selectedSub = searchParams.get("sub") || "all";
+  const searchTerm = searchParams.get("q") || "";
+  const requestedPage = Number(searchParams.get("page") || 1);
+  const mainQuery = useMainCategories();
+  const subQuery = useSubCategories({ page: 0, pageSize: 100, hydrateMainCategory: true });
+  const productsQuery = useProducts({ page: 0, pageSize: 10000, sortBy: "name", sortDi: "asc" });
+  const products = productsQuery.data?.data?.content;
+  const mainCategories = mainQuery.data?.data || [];
+  const subCategories = subQuery.data?.data?.content || [];
 
-  const [searchParams] = useSearchParams();
-  const [expandedMainCat, setExpandedMainCat] = useState<string | null>(null);
-
-  // Sync with query params
-  useEffect(() => {
-    const main = searchParams.get("main");
-    const sub = searchParams.get("sub");
-
-    if (main) {
-      setSelectedMainCategory(main);
-    } else {
-      setSelectedMainCategory("all");
-    }
-
-    if (sub) {
-      setSelectedSubCategory(sub);
-    } else {
-      setSelectedSubCategory("all");
-    }
-
-    setCurrentPage(0);
-  }, [searchParams]);
-
-  // API Queries
-  const {
-    data: mainCategoriesData,
-    isLoading: mainCategoriesLoading,
-    error: mainCategoriesError,
-  } = useMainCategories();
-  const { data: subCategoriesData } = useSubCategories({
-    page: 0,
-    pageSize: 100,
-    hydrateMainCategory: true,
-  });
-  const {
-    data: productsData,
-    isLoading: productsLoading,
-    error: productsError,
-    refetch: refetchProducts,
-  } = useProducts({
-    page: 0,
-    pageSize: 10000,
-    sortBy: "name",
-    sortDi: "asc",
-  });
-
-  // Filter products
+  const updateFilters = (values: Record<string, string>, replace = false) => {
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.delete("page");
+      Object.entries(values).forEach(([key, value]) => {
+        if (!value || value === "all") next.delete(key);
+        else next.set(key, value);
+      });
+      return next;
+    }, { replace, preventScrollReset: true });
+  };
+  const resetFilters = () => updateFilters({ main: "all", sub: "all", q: "" });
   const filteredProducts = useMemo(() => {
-    if (!productsData?.data?.content) return [];
-
-    let filtered = productsData.data.content;
-
-    if (selectedMainCategory !== "all") {
-      filtered = filtered.filter(
-        (product) =>
-          product.productSubCategory.productMainCategory
-            .productMainCategoryId === selectedMainCategory,
-      );
-    }
-
-    if (selectedSubCategory !== "all") {
-      filtered = filtered.filter(
-        (product) =>
-          product.productSubCategory.productSubCategoryId ===
-          selectedSubCategory,
-      );
-    }
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.shortDescription
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()),
-      );
-    }
-
-    return filtered;
-  }, [productsData, selectedMainCategory, selectedSubCategory, searchTerm]);
-
-  const paginatedProducts = useMemo(() => {
-    const start = currentPage * pageSize;
-    return filteredProducts.slice(start, start + pageSize);
-  }, [filteredProducts, currentPage, pageSize]);
-
-  // const filteredSubCategories = useMemo(() => {
-  //   if (!subCategoriesData?.data?.content) return [];
-
-  //   if (selectedMainCategory === "all") {
-  //     return subCategoriesData.data.content;
-  //   }
-
-  //   return subCategoriesData.data.content.filter(
-  //     (subCat) =>
-  //       subCat.productMainCategory.productMainCategoryId ===
-  //       selectedMainCategory,
-  //   );
-  // }, [subCategoriesData, selectedMainCategory]);
-
-  if (mainCategoriesLoading || productsLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-500">Loading products...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (mainCategoriesError || productsError) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <ErrorMessage
-          message="Failed to load products. Please check if the API server is running."
-          onRetry={refetchProducts}
-        />
-      </div>
-    );
-  }
+    const query = searchTerm.trim().toLowerCase();
+    return (products || []).filter((product) => {
+      const sub = product.productSubCategory;
+      return (selectedMain === "all" || sub?.productMainCategory?.productMainCategoryId === selectedMain)
+        && (selectedSub === "all" || sub?.productSubCategoryId === selectedSub)
+        && (!query || [product.name, product.shortDescription, sub?.name, sub?.productMainCategory?.name]
+          .some((value) => value?.toLowerCase().includes(query)));
+    });
+  }, [products, selectedMain, selectedSub, searchTerm]);
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const currentPage = Math.min(totalPages, Math.max(1, Number.isSafeInteger(requestedPage) ? requestedPage : 1));
+  const pageStart = (currentPage - 1) * PAGE_SIZE;
+  const visibleProducts = filteredProducts.slice(pageStart, pageStart + PAGE_SIZE);
+  const hasFilters = selectedMain !== "all" || selectedSub !== "all" || !!searchTerm;
+  const activeCategory = subCategories.find((sub) => sub.productSubCategoryId === selectedSub)?.name
+    || mainCategories.find((main) => main.productMainCategoryId === selectedMain)?.name;
+  const isLoading = mainQuery.isLoading || subQuery.isLoading || productsQuery.isLoading;
+  const hasError = mainQuery.isError || subQuery.isError || productsQuery.isError;
+  const retry = () => {
+    void mainQuery.refetch();
+    void subQuery.refetch();
+    void productsQuery.refetch();
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8  pt-[130px]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-8 mb-8">
-          <h1 className="text-4xl font-heading font-extrabold text-gray-900 mb-3">
-            Explore Products
-          </h1>
-          {/* <p className="text-xl text-gray-500">
-            Professional aquascaping solutions for every need
-          </p> */}
-
-          {/* Search Bar */}
-          <div className="mt-6 relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(0);
-              }}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            />
+    <div className="catalog-page">
+      <div className="catalog-orb catalog-orb-green" aria-hidden="true" />
+      <div className="catalog-orb catalog-orb-sand" aria-hidden="true" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <nav className="catalog-breadcrumb" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Our products</span></nav>
+        <header className="catalog-hero glass-panel">
+          <div className="catalog-hero-copy">
+            <span className="section-label">The VHN collection</span>
+            <h1>Rooted in nature.<br /><span>Selected for you.</span></h1>
+            <p>Explore fresh produce, growing media, and horticulture essentials. Find the right products for your business.</p>
+            <label className="catalog-search">
+              <Search className="w-5 h-5 shrink-0" aria-hidden="true" />
+              <span className="sr-only">Search products</span>
+              <input type="search" placeholder="Search products or categories…" value={searchTerm} onChange={(event) => updateFilters({ q: event.target.value }, true)} />
+              {searchTerm && <button type="button" onClick={() => updateFilters({ q: "" }, true)} aria-label="Clear search"><X className="w-4 h-4" /></button>}
+            </label>
           </div>
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="lg:w-64">
-            <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-              <div className="flex items-center mb-4">
-                <Filter className="w-5 h-5 text-gray-500 mr-2" />
-                <h3 className="font-semibold text-gray-900">
-                  Explore By Categories
-                </h3>
-              </div>
-
-              {/* All Products */}
-              <button
-                onClick={() => {
-                  setSelectedMainCategory("all");
-                  setSelectedSubCategory("all");
-                  setExpandedMainCat(null);
-                  setCurrentPage(0);
-                }}
-                className={`w-full text-left px-3 py-2 rounded-lg transition-colors font-medium mb-4 ${
-                  selectedMainCategory === "all"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                All Products
-              </button>
-
-              <div className="space-y-6">
-                {mainCategoriesData?.data?.map((mainCat) => {
-                  const subCats =
-                    subCategoriesData?.data?.content.filter(
-                      (sub) =>
-                        sub.productMainCategory.productMainCategoryId ===
-                        mainCat.productMainCategoryId,
-                    ) || [];
-
-                  const isExpanded =
-                    expandedMainCat === mainCat.productMainCategoryId;
-
-                  const visibleSubCats = isExpanded
-                    ? subCats
-                    : subCats.slice(0, 4);
-
-                  return (
-                    <div key={mainCat.productMainCategoryId}>
-                      {/* Main Category */}
-                      <button
-                        onClick={() => {
-                          setSelectedMainCategory(
-                            mainCat.productMainCategoryId,
-                          );
-                          setSelectedSubCategory("all");
-                          setCurrentPage(0);
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors font-medium ${
-                          selectedMainCategory === mainCat.productMainCategoryId
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                      >
-                        {mainCat.name}
-                      </button>
-
-                      {/* Sub Categories */}
-                      <div className="ml-3 mt-2 space-y-1">
-                        {visibleSubCats.map((sub) => (
-                          <button
-                            key={sub.productSubCategoryId}
-                            onClick={() => {
-                              setSelectedMainCategory(
-                                mainCat.productMainCategoryId,
-                              );
-                              setSelectedSubCategory(sub.productSubCategoryId);
-                              setCurrentPage(0);
-                            }}
-                            className={`w-full text-left px-3 py-1 rounded-lg transition-colors text-md ${
-                              selectedSubCategory === sub.productSubCategoryId
-                                ? "bg-cyan-100 text-cyan-700 font-medium"
-                                : "text-gray-700 hover:bg-gray-100"
-                            }`}
-                          >
-                            {sub.name}
-                          </button>
-                        ))}
-
-                        {/* See All / See Less */}
-                        {subCats.length > 4 && (
-                          <button
-                            onClick={() =>
-                              setExpandedMainCat(
-                                isExpanded
-                                  ? null
-                                  : mainCat.productMainCategoryId,
-                              )
-                            }
-                            className="w-full text-left px-3 py-1 text-sm text-emerald-600 hover:underline"
-                          >
-                            {isExpanded ? "See Less" : "See All"}
-                          </button>
-                        )}
+          <div className="catalog-hero-note">
+            <span className="catalog-leaf"><Leaf className="w-7 h-7" strokeWidth={1.4} aria-hidden="true" /></span>
+            <p>From the earth.<br /><strong>To your business.</strong></p>
+            <Link to="/contact">Talk to our team <ArrowUpRight className="w-4 h-4" aria-hidden="true" /></Link>
+          </div>
+        </header>
+        {isLoading ? <div className="catalog-status glass-panel" role="status"><LoadingSpinner size="lg" /><p>Loading our collection…</p></div>
+          : hasError ? <div className="catalog-status glass-panel"><ErrorMessage message="We couldn’t load the collection. Please try again." onRetry={retry} /></div>
+          : <div className="catalog-layout">
+            <aside className="catalog-sidebar">
+              <CategoryPanel className="catalog-categories">
+                <button type="button" className="catalog-category catalog-all" aria-pressed={selectedMain === "all" && selectedSub === "all"} onClick={() => updateFilters({ main: "all", sub: "all" })}>
+                  <span>All products</span><span className="catalog-count">{products?.length || 0}</span>
+                </button>
+                <div className="catalog-category-groups">
+                  {mainCategories.map((main) => {
+                    const id = main.productMainCategoryId;
+                    const subs = subCategories.filter((sub) => sub.productMainCategory?.productMainCategoryId === id);
+                    const expanded = expandedCategories.includes(id);
+                    const visibleSubs = expanded ? subs : subs.filter((sub, index) => index < 4 || sub.productSubCategoryId === selectedSub);
+                    return <div key={id}>
+                      <button type="button" className="catalog-category" aria-pressed={selectedMain === id && selectedSub === "all"} onClick={() => updateFilters({ main: id, sub: "all" })}>{main.name}</button>
+                      <div className="catalog-subcategories">
+                        {visibleSubs.map((sub) => <button type="button" key={sub.productSubCategoryId} className="catalog-subcategory" aria-pressed={selectedSub === sub.productSubCategoryId} onClick={() => updateFilters({ main: id, sub: sub.productSubCategoryId })}><span className="catalog-category-dot" aria-hidden="true" />{sub.name}</button>)}
+                        {subs.length > 4 && <button type="button" className="catalog-see-all" aria-expanded={expanded} onClick={() => setExpandedCategories((previous) => expanded ? previous.filter((value) => value !== id) : [...previous, id])}>{expanded ? "Show fewer" : `View all ${subs.length}`}</button>}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Products */}
-          <div className="flex-1">
-            {/* View Controls */}
-            <div className="bg-white rounded-xl shadow-sm p-4 mb-6 flex justify-between items-center">
-              <span className="text-gray-500">
-                Showing {filteredProducts.length} products
-              </span>
-
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === "grid"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "text-gray-500 hover:bg-gray-100"
-                  }`}
-                >
-                  <Grid className="w-5 h-5" />
-                </button>
-
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === "list"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "text-gray-500 hover:bg-gray-100"
-                  }`}
-                >
-                  {/* <List className="w-5 h-5" /> */}
-                </button>
-              </div>
-            </div>
-
-            {/* Products Grid/List */}
-            {paginatedProducts.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                <div className="text-gray-400 mb-4">
-                  <Package className="w-16 h-16 mx-auto" />
+                    </div>;
+                  })}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                  No products found
-                </h3>
-                <p className="text-gray-500">
-                  Try adjusting your filters or search terms.
-                </p>
+                <div className="catalog-help"><Leaf className="w-5 h-5 mb-3" aria-hidden="true" /><p>Looking for something specific?</p><Link to="/contact">Let’s find it together <ArrowUpRight className="w-4 h-4" aria-hidden="true" /></Link></div>
+              </CategoryPanel>
+            </aside>
+            <section className="min-w-0" aria-label="Product collection">
+              <div className="catalog-toolbar glass-panel">
+                <div><h2>{activeCategory || "Explore products"}</h2><p role="status">{filteredProducts.length ? `Showing ${pageStart + 1}–${Math.min(pageStart + PAGE_SIZE, filteredProducts.length)} of ${filteredProducts.length} products` : "0 products"}</p></div>
+                <div className="catalog-views" role="group" aria-label="Product view">
+                  <button type="button" onClick={() => setViewMode("grid")} aria-label="Grid view" aria-pressed={viewMode === "grid"}><Grid className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => setViewMode("list")} aria-label="List view" aria-pressed={viewMode === "list"}><List className="w-4 h-4" /></button>
+                </div>
               </div>
-            ) : (
-              <>
-                <div
-                  className={`grid gap-6 ${
-                    viewMode === "grid"
-                      ? "md:grid-cols-2 xl:grid-cols-3"
-                      : "grid-cols-1"
-                  }`}
-                >
-                  {paginatedProducts.map((product) => (
-                    <ProductCard
-                      key={product.productId}
-                      product={product}
-                      viewMode={viewMode}
-                      onViewDetails={setSelectedProduct}
-                    />
-                  ))}
+              {hasFilters && <div className="catalog-active-filters"><span>{activeCategory || "All products"}{searchTerm.trim() && ` · “${searchTerm.trim()}”`}</span><button type="button" onClick={resetFilters}>Clear filters <X className="w-3 h-3" aria-hidden="true" /></button></div>}
+              {visibleProducts.length ? <>
+                <div className={`catalog-products ${viewMode === "list" ? "catalog-products-list" : ""}`}>
+                  {visibleProducts.map((product) => <ProductCard key={product.productId} product={product} viewMode={viewMode} />)}
                 </div>
-
-                {/* Pagination */}
-                <div className="flex justify-center items-center mt-8 space-x-4">
-                  <button
-                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 disabled:opacity-50"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 0))
-                    }
-                    disabled={currentPage === 0}
-                  >
-                    Previous
-                  </button>
-
-                  <span className="text-gray-500">
-                    Page {currentPage + 1} of{" "}
-                    {Math.ceil(filteredProducts.length / pageSize)}
-                  </span>
-
-                  <button
-                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 disabled:opacity-50"
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                    disabled={
-                      (currentPage + 1) * pageSize >= filteredProducts.length
-                    }
-                  >
-                    Next
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+                {totalPages > 1 && <nav className="catalog-pagination" aria-label="Product pages">
+                  <button type="button" onClick={() => updateFilters({ page: String(currentPage - 1) })} disabled={currentPage === 1}><ChevronLeft className="w-4 h-4" aria-hidden="true" />Previous</button>
+                  <span aria-live="polite">Page <strong>{currentPage}</strong> of {totalPages}</span>
+                  <button type="button" onClick={() => updateFilters({ page: String(currentPage + 1) })} disabled={currentPage === totalPages}>Next<ChevronRight className="w-4 h-4" aria-hidden="true" /></button>
+                </nav>}
+              </> : <div className="catalog-status glass-panel"><Package className="w-10 h-10 text-emerald-700" aria-hidden="true" /><h3>No products found</h3><p>Try another search or clear your filters to explore the collection.</p>{hasFilters && <button type="button" className="btn-primary" onClick={resetFilters}>Clear all filters</button>}</div>}
+            </section>
+          </div>}
       </div>
-
-      {/* Product Modal */}
-      <ProductModal
-        product={selectedProduct}
-        isOpen={!!selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-      />
     </div>
   );
-};
-
-export default Products;
+}

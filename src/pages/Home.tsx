@@ -3,7 +3,6 @@ import {
   ArrowRight,
   Leaf,
   Droplets,
-  Zap,
   Award,
   Users,
   Globe,
@@ -29,31 +28,26 @@ const Home = () => {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-cyan-900 flex items-center pt-[98px]">
-        <div className="absolute inset-0 bg-black/30"></div>
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('/images/farming_products.webp')",
-          }}
-        ></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/70 to-transparent"></div>
+      <section className="hero-section">
+        <img className="hero-image" src="/images/cocopeat-drying-yard.png" alt="Cocopeat drying yard concept with compressed blocks and coconut palms" fetchPriority="high" />
+        <div className="hero-shade" aria-hidden="true" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
-          <div className="max-w-2xl">
-            <h3 className="text-lg font-semibold text-white/80 mb-1 tracking-wide">
-              Connecting Markets, Delivering Freshness
-            </h3>
-            <h1 className="text-5xl lg:text-7xl font-bold mb-4 leading-tight tracking-tight">
-              Global Exporters of
-              <span className="text-cyan-300 block">Fresh Produce</span>
-            </h1>
-            <p className="text-lg mb-8 text-gray-200 leading-relaxed">
-              At VHN Global, we connect growers and buyers worldwide—supplying
-              export-quality fruits, vegetables, pulses, and more with
-              reliability, compliance, and a focus on freshness.
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
+          <div className="hero-copy glass-dark">
+            <span className="hero-pill"><Leaf className="w-3 h-3" /> Fruits, vegetables &amp; cocopeat</span>
+            <p className="text-sm font-medium text-white/80 mb-3 tracking-wide">
+              Rooted in Nature, Growing Worldwide
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <h1 className="font-bold mb-5">
+              Global Exporters of
+              <span className="text-cyan-300 block">Fruits, Vegetables &amp; Cocopeat</span>
+            </h1>
+            <p className="text-base sm:text-lg mb-8 text-gray-200 leading-relaxed">
+              From fresh fruits and vegetables to coconut-based growing media,
+              VHN Global connects India's agricultural products with growers,
+              distributors, and buyers worldwide.
+            </p>
+            <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
               <Link
                 to="/products"
                 className="bg-emerald-600 hover:bg-emerald-500 px-8 py-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center group"
@@ -61,83 +55,99 @@ const Home = () => {
                 Explore Products
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
+              <Link to="/contact" className="btn-secondary">Discuss your requirements <ArrowRight className="w-4 h-4" /></Link>
               {/* <button className="border-2 border-white hover:bg-white hover:text-emerald-800 px-8 py-4 rounded-lg font-semibold transition-all duration-300">
                 Watch Tutorial
               </button> */}
+            </div>
+            <div className="hero-footnote">
+              <span>01 / Fresh fruits</span>
+              <span>02 / Vegetables</span>
+              <span>03 / Cocopeat</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="feature-section py-12 sm:py-20" aria-labelledby="why-choose-heading">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-heading font-black text-gray-900 mb-3">
+          <div className="text-center mb-12" data-reveal>
+            <span className="section-label">A better foundation for growth</span>
+            <h2 id="why-choose-heading" className="text-3xl sm:text-4xl font-heading font-black text-gray-900 mb-3">
               Why Choose VHN Global
             </h2>
-            <p className="text-xl text-gray-500 max-w-3xl mx-auto">
-              Decades of experience delivering export-quality agricultural
-              products with global reach and trusted logistics
+            <p className="text-lg sm:text-xl text-gray-500 max-w-3xl mx-auto leading-relaxed">
+              Fresh fruits, vegetables, and cocopeat, with thoughtful sourcing
+              and export support for buyers worldwide.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-5 sm:gap-6">
             {[
               {
                 icon: <Leaf className="w-8 h-8 text-emerald-600" />,
-                bg: "bg-emerald-100",
-                title: "Quality & Compliance",
-                desc: "We ensure export-grade quality with strict sorting, packing, and phytosanitary compliance so your products arrive fresh and market-ready.",
+                title: "Fresh Produce & Cocopeat",
+                desc: "Explore fresh fruits and vegetables for your market, alongside coconut-based growing media for nurseries, horticulture, and modern agriculture.",
               },
               {
                 icon: <Droplets className="w-8 h-8 text-cyan-600" />,
-                bg: "bg-cyan-100",
-                title: "Wide Product Range",
-                desc: "From fresh fruits and vegetables to pulses and specialty crops, our catalog is curated for international buyers and bulk traders.",
+                title: "Your Requirements First",
+                desc: "From produce sourcing to cocopeat supply, share your product specifications, quantities, and destination so we can help you explore suitable options.",
               },
               {
-                icon: <Zap className="w-8 h-8 text-yellow-600" />,
-                bg: "bg-yellow-100",
-                title: "Global Logistics",
-                desc: "Our export logistics and partner networks ensure timely shipments with traceability and cold-chain support where required.",
+                icon: <Globe className="w-8 h-8 text-emerald-700" />,
+                title: "From India to Your Market",
+                desc: "Planning an international order? Connect with our team to discuss product availability, packaging, and shipment requirements for your destination.",
               },
-            ].map((feature, idx) => (
-              <div
+            ].map((feature) => (
+              <article
                 key={feature.title}
-                className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className="glass-panel feature-card p-6 sm:p-8"
+                data-reveal
               >
-                <div
-                  className={`w-16 h-16 ${feature.bg} rounded-lg flex items-center justify-center mb-6`}
-                >
+                <div className="feature-icon w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center mb-6" aria-hidden="true">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-bold mb-4 text-gray-900">
                   {feature.title}
                 </h3>
                 <p className="text-gray-500 leading-relaxed">{feature.desc}</p>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
       {/* Excellence Section */}
-      <section className="py-20 bg-emerald-50">
+      <section className="feature-section py-12 sm:py-20" aria-labelledby="sourcing-heading">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center lg:text-left">
+          <div className="glass-panel feature-card sourcing-card p-6 sm:p-12 max-w-5xl mx-auto text-center" data-reveal>
+            <span className="section-label">From Indian farms to global markets</span>
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                From Farms
-                <span className="text-emerald-700 block">to Global Markets</span>
+              <h2 id="sourcing-heading" className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+                Naturally sourced.
+                <span className="text-emerald-700 block">Globally connected.</span>
               </h2>
               <p className="text-lg text-gray-500 mb-8 leading-relaxed">
-                VHN Global sources and exports fresh, high-quality produce—connecting growers with international buyers. We focus on quality control, packaging, and logistics to deliver products that meet global market standards.
+                VHN Global sources and exports fresh fruits, vegetables, and
+                cocopeat from India, connecting agricultural producers with
+                buyers worldwide. From produce for your market to coconut-based
+                growing media for your crops, we help you explore product,
+                packaging, and shipment options for your requirements.
               </p>
             </div>
 
+            <ul className="flex flex-wrap justify-center gap-3 mb-8" aria-label="Our product focus">
+              {['Fresh fruits', 'Vegetables', 'Cocopeat'].map((category) => (
+                <li key={category} className="sourcing-pill">
+                  <span aria-hidden="true" />{category}
+                </li>
+              ))}
+            </ul>
+
             <div className="flex justify-center">
               <Link
-                to="/company"
+                to="/about"
                 className="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors group"
               >
                 Learn More
@@ -149,10 +159,10 @@ const Home = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold font-heading text-gray-900 mb-3">
+            <h2 className="text-3xl sm:text-4xl font-bold font-heading text-gray-900 mb-3">
               Featured Products
             </h2>
             <p className="text-xl text-gray-500">

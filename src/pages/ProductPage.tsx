@@ -1,445 +1,92 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
-import { Package, Tag, Filter } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ProductResponse } from "../types/api";
-import {
-  productApi,
-  productMainCategoryApi,
-  productSubCategoryApi,
-} from "../services/api";
+import { useState } from "react";
+import { ArrowLeft, ArrowUpRight, ChevronRight, Mail, Tag } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import CategoryPanel from "../components/CategoryPanel";
+import ErrorMessage from "../components/ErrorMessage";
+import LoadingSpinner from "../components/LoadingSpinner";
+import ProductEnquiryDialog from "../components/ProductEnquiryDialog";
+import ProductGallery from "../components/ProductGallery";
+import { useMainCategories, useProduct, useSubCategories } from "../hooks/useProducts";
 
-const ProductPage: React.FC = () => {
-  const { productId } = useParams();
-  const navigate = useNavigate();
+export default function ProductPage() {
+  const { productId = "" } = useParams();
+  const { data: productData, isLoading, error, refetch } = useProduct(productId);
+  const { data: mainCategories, isLoading: categoriesLoading, error: categoriesError } = useMainCategories();
+  const { data: subCategories } = useSubCategories({ page: 0, pageSize: 100, hydrateMainCategory: true });
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const product = productData?.data;
 
-  const [product, setProduct] = useState<ProductResponse | null>(null);
-  const [mainImage, setMainImage] = useState<string>("");
-  const [thumbnails, setThumbnails] = useState<string[]>([]);
+  if (isLoading) return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"><div className="glass-panel feature-card min-h-64 flex flex-col items-center justify-center gap-4 p-8"><LoadingSpinner size="lg" /><p className="text-gray-500">Loading product details...</p></div></div>;
+  if (error || !product) return <div className="max-w-3xl mx-auto px-4 py-10"><Link to="/products" className="company-text-link mb-5"><ArrowLeft className="w-4 h-4" />Back to products</Link><ErrorMessage message="We couldn't load this product. Please try again or browse our product range." onRetry={() => { void refetch(); }} /></div>;
 
-  /* Sidebar states */
-  const [mainCategoriesData, setMainCategoriesData] = useState<any>(null);
-  const [subCategoriesData, setSubCategoriesData] = useState<any>(null);
-  const [selectedMainCategory, setSelectedMainCategory] = useState<any>("all");
-  const [selectedSubCategory, setSelectedSubCategory] = useState<any>("all");
-  const [expandedMainCat, setExpandedMainCat] = useState<any>(null);
+  const subCategory = product.productSubCategory;
+  const mainCategory = subCategory?.productMainCategory;
+  const isCocopeat = /coco\s?peat|coir/i.test(`${product.name} ${subCategory?.name ?? ""}`);
+  const details = product.longDescription?.trim();
 
-  /* Form states */
-
-  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [status, setStatus] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    contact: "",
-    subject: "",
-    message: "",
-  });
-
-  const appsScriptUrl = import.meta.env.VITE_APP_SCRIPT_EXCEL_URL || "";
-
-  const getCurrencyFromTimeZone = () => {
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    if (
-      timeZone.startsWith("Asia/Kolkata") ||
-      timeZone.startsWith("Asia/Calcutta")
-    )
-      return { locale: "en-IN", currency: "INR" };
-
-    if (timeZone.startsWith("America"))
-      return { locale: "en-US", currency: "USD" };
-
-    if (timeZone.startsWith("Europe"))
-      return { locale: "de-DE", currency: "EUR" };
-
-    return { locale: "en-US", currency: "USD" };
-  };
-
-  const formatPrice = (price: number) => {
-    const { locale, currency } = getCurrencyFromTimeZone();
-
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-    }).format(price);
-  };
-
-  const getImageUrl = (imageUrl?: string) => {
-    if (!imageUrl) return "/images/nursary-product.png";
-
-    if (imageUrl.startsWith("http")) return imageUrl;
-
-    return productApi.getImage(imageUrl);
-  };
-
-  /* Fetch Product */
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      if (!productId) return;
-
-      try {
-        const response = await productApi.getById(productId);
-        const data = response.data;
-
-        setProduct(data);
-
-        const primary = getImageUrl(data.primaryImageUrl);
-        const additional = (data.additionalImageUrls || []).map(getImageUrl);
-
-        setMainImage(primary);
-        setThumbnails(additional);
-
-        setFormData((prev) => ({
-          ...prev,
-          subject: `Inquiry about ${data.name}`,
-        }));
-      } catch (error) {
-        console.error("Error fetching product", error);
-      }
-    };
-
-    fetchProduct();
-  }, [productId]);
-
-  /* Fetch Categories */
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const mainCategories = await productMainCategoryApi.getAll();
-        const subCategories = await productSubCategoryApi.getAll({ page: 0 });
-
-        setMainCategoriesData(mainCategories);
-        setSubCategoriesData(subCategories);
-      } catch (error) {
-        console.error("Error fetching categories", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  const handleThumbnailClick = (clickedImage: string) => {
-    if (clickedImage === mainImage) return;
-
-    setThumbnails((prev) => {
-      const updated = prev.filter((img) => img !== clickedImage);
-      return [mainImage, ...updated];
-    });
-
-    setMainImage(clickedImage);
-  };
-
-  /* Form handlers */
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    setIsLoading(true);
-
-    try {
-      await fetch(appsScriptUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-        mode: "no-cors",
-      });
-
-      setStatus({
-        type: "success",
-        message: "✅ Your message has been sent successfully!",
-      });
-
-      setFormData({
-        name: "",
-        email: "",
-        contact: "",
-        subject: `Inquiry about ${product?.name}`,
-        message: "",
-      });
-
-      setTimeout(() => setStatus(null), 5000);
-    } catch {
-      setStatus({
-        type: "error",
-        message: "❌ There was an error sending your message",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!product) {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-600 border-t-transparent"></div>
+    <div className="product-detail-page py-6 sm:py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav aria-label="Breadcrumb" className="product-breadcrumb mb-6">
+          <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <li><Link to="/products" className="inline-flex items-center gap-2"><ArrowLeft className="w-4 h-4 shrink-0" aria-hidden="true" />Products</Link></li>
+            {mainCategory && <li className="inline-flex items-center gap-2"><ChevronRight className="w-3 h-3 shrink-0" aria-hidden="true" /><Link to={`/products?main=${mainCategory.productMainCategoryId}`}>{mainCategory.name}</Link></li>}
+            <li className="inline-flex items-center gap-2"><ChevronRight className="w-3 h-3 shrink-0" aria-hidden="true" /><span aria-current="page">{product.name}</span></li>
+          </ol>
+        </nav>
+
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+          <aside className="product-category-sidebar w-full lg:w-60 shrink-0 min-w-0 order-last lg:order-none" aria-label="Browse product categories">
+            <CategoryPanel className="feature-card product-category-panel">
+              <Link to="/products" className="product-category-link mb-4">All products</Link>
+              {categoriesLoading && <p className="text-sm text-gray-500">Loading categories...</p>}
+              {categoriesError && <p className="text-sm text-gray-500">Categories are unavailable. You can still browse all products.</p>}
+              <div className="space-y-5">
+                {mainCategories?.data?.map((category) => {
+                  const children = subCategories?.data?.content.filter((sub) => sub.productMainCategory?.productMainCategoryId === category.productMainCategoryId) ?? [];
+                  const expanded = expandedCategory === category.productMainCategoryId;
+                  const active = mainCategory?.productMainCategoryId === category.productMainCategoryId;
+                  const selectedChild = children.find((sub) => sub.productSubCategoryId === subCategory?.productSubCategoryId);
+                  const firstChildren = children.slice(0, 4);
+                  const visibleChildren = expanded ? children : selectedChild && !firstChildren.includes(selectedChild) ? [...firstChildren, selectedChild] : firstChildren;
+                  return <div key={category.productMainCategoryId}>
+                    <Link to={`/products?main=${category.productMainCategoryId}`} className="product-category-link font-semibold" aria-current={active ? "true" : undefined}>{category.name}</Link>
+                    <div className="ml-3 mt-2">
+                      {visibleChildren.map((sub) => <Link key={sub.productSubCategoryId} to={`/products?main=${category.productMainCategoryId}&sub=${sub.productSubCategoryId}`} className="product-category-link text-sm" aria-current={sub.productSubCategoryId === subCategory?.productSubCategoryId ? "true" : undefined}>{sub.name}</Link>)}
+                      {children.length > 4 && <button type="button" className="product-category-link text-sm" aria-expanded={expanded} onClick={() => setExpandedCategory(expanded ? null : category.productMainCategoryId)}>{expanded ? "Show fewer" : "Show all categories"}</button>}
+                    </div>
+                  </div>;
+                })}
+              </div>
+            </CategoryPanel>
+          </aside>
+
+          <article className="product-detail-shell glass-panel feature-card flex-1 min-w-0 w-full" aria-labelledby="product-title">
+            <div className="grid xl:grid-cols-2 gap-7 sm:gap-9 items-start">
+              <ProductGallery key={product.productId} product={product} />
+              <div className="product-description">
+                <span className="product-eyebrow mb-3 block">The VHN Global collection</span>
+                <h1 id="product-title" className="text-3xl sm:text-4xl font-bold mb-4">{product.name}</h1>
+                {subCategory?.name && <span className="product-category-badge mb-6"><Tag className="w-4 h-4 shrink-0" aria-hidden="true" />{subCategory.name}</span>}
+
+                {product.shortDescription && <div className="product-copy-section"><h2 className="product-copy-heading">Product overview</h2><p className="whitespace-pre-line">{product.shortDescription}</p></div>}
+                {details && <div className="product-copy-section"><h2 className="product-copy-heading">About this product</h2>{details.split(/\n\s*\n/).map((paragraph, index) => <p key={index} className="whitespace-pre-line">{paragraph}</p>)}</div>}
+                {!product.shortDescription && !details && <p className="text-gray-500 leading-relaxed mb-6">Contact our team for product information, availability, and your supply requirements.</p>}
+                {isCocopeat && <Link to="/about#technical-specifications" className="company-text-link mb-5">View cocopeat specifications <ArrowUpRight className="w-4 h-4 shrink-0" aria-hidden="true" /></Link>}
+
+                <div className="product-enquiry-box">
+                  <h2 className="font-semibold text-lg mb-2">Discuss your requirements</h2>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-5">Share quantities and destination to discuss availability and supply options with our team.</p>
+                  <button type="button" className="btn-primary inline-flex w-full" onClick={() => setEnquiryOpen(true)}>Enquire Now <ArrowUpRight className="w-4 h-4 shrink-0" aria-hidden="true" /></button>
+                  <a href={`mailto:info@vhnglobal.com?subject=${encodeURIComponent(`Product enquiry: ${product.name}`)}`} className="product-email-link"><Mail className="w-4 h-4 shrink-0" aria-hidden="true" />Email our team</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+      {enquiryOpen && <ProductEnquiryDialog productName={product.name} onClose={() => setEnquiryOpen(false)} />}
     </div>
   );
 }
-
-  return (
-    <div className="max-w-7xl mx-auto p-6 pt-[160px]">
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Sidebar */}
-
-        <div className="lg:w-64">
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <div className="flex items-center mb-4">
-              <Filter className="w-5 h-5 text-gray-500 mr-2" />
-              <h3 className="font-semibold text-gray-900">
-                Explore By Categories
-              </h3>
-            </div>
-
-            <button
-              onClick={() => navigate("/products")}
-              className={`w-full text-left px-3 py-2 rounded-lg transition-colors font-medium mb-4 ${
-                  selectedMainCategory === "all"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-              All Products
-            </button>
-
-            <div className="space-y-6">
-              {mainCategoriesData?.data?.map((mainCat: any) => {
-                const subCats =
-                  subCategoriesData?.data?.content.filter(
-                    (sub: any) =>
-                      sub.productMainCategory.productMainCategoryId ===
-                      mainCat.productMainCategoryId,
-                  ) || [];
-
-                const isExpanded =
-                  expandedMainCat === mainCat.productMainCategoryId;
-
-                const visibleSubCats = isExpanded
-                  ? subCats
-                  : subCats.slice(0, 4);
-
-                return (
-                  <div key={mainCat.productMainCategoryId}>
-                    {/* MAIN CATEGORY */}
-                    <button
-                      onClick={() => {
-                        navigate(
-                          `/products?main=${mainCat.productMainCategoryId}`,
-                        );
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors font-medium ${
-                          selectedMainCategory === mainCat.productMainCategoryId
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                    >
-                      {mainCat.name}
-                    </button>
-
-                    {/* SUB CATEGORIES */}
-                    <div className="ml-3 mt-2 space-y-1">
-                      {visibleSubCats.map((sub: any) => (
-                        <button
-                          key={sub.productSubCategoryId}
-                          onClick={() => {
-                            navigate(
-                              `/products?main=${mainCat.productMainCategoryId}&sub=${sub.productSubCategoryId}`,
-                            );
-                          }}
-                          className={`w-full text-left px-3 py-1 rounded-lg transition-colors text-md ${
-                              selectedSubCategory === sub.productSubCategoryId
-                                ? "bg-cyan-100 text-cyan-700 font-medium"
-                                : "text-gray-700 hover:bg-gray-100"
-                            }`}
-                        >
-                          {sub.name}
-                        </button>
-                      ))}
-
-                      {/* SEE ALL / LESS */}
-                      {subCats.length > 4 && (
-                        <button
-                          onClick={() =>
-                            setExpandedMainCat(
-                              isExpanded ? null : mainCat.productMainCategoryId,
-                            )
-                          }
-                          className="w-full text-left px-3 py-1 text-sm text-emerald-600 hover:underline"
-                        >
-                          {isExpanded ? "See Less" : "See All"}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Product Section */}
-
-        <div className="flex-1">
-          <div className="bg-white rounded-2xl shadow-sm p-6 grid lg:grid-cols-2 gap-8">
-            {/* Images */}
-
-            <div>
-              <div className="mb-4 bg-gray-50 rounded-xl flex items-center justify-center">
-                <img
-                  src={mainImage}
-                  alt={product.name}
-                  className="max-h-96 object-contain rounded-xl"
-                />
-              </div>
-
-              {thumbnails.length > 0 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {thumbnails.map((thumb, idx) => (
-                    <img
-                      key={idx}
-                      src={thumb}
-                      alt="thumbnail"
-                      onClick={() => handleThumbnailClick(thumb)}
-                      className="h-20 w-full object-cover rounded-lg cursor-pointer hover:opacity-80"
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Product Details */}
-
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                {product.name}
-              </h1>
-
-              <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
-                <Tag className="w-4 h-4 text-emerald-600" />
-                {product.productSubCategory.productMainCategory.name} →
-                {product.productSubCategory.name}
-              </div>
-
-              {/* Price and minimum quantity hidden by request */}
-
-              {product.shortDescription && (
-                <p className="text-gray-600 mb-4">{product.shortDescription}</p>
-              )}
-
-              {product.longDescription && (
-                <p className="text-gray-600 leading-relaxed">
-                  {product.longDescription}
-                </p>
-              )}
-
-              <button
-                onClick={() => setIsEnquiryOpen(true)}
-                className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg transition mx-auto block"
-              >
-                Enquire Now
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Enquiry Modal */}
-
-      {isEnquiryOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
-            <button
-              onClick={() => setIsEnquiryOpen(false)}
-              className="absolute top-3 right-3 text-gray-500"
-            >
-              ✕
-            </button>
-
-            <h2 className="text-xl font-semibold mb-4">
-              Enquire about {product.name}
-            </h2>
-
-            {status && (
-              <div
-                className={`mb-4 text-sm ${
-                  status.type === "success" ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {status.message}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                name="name"
-                placeholder="Your Name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-                className="w-full border px-3 py-2 rounded-lg"
-              />
-
-              <input
-                name="email"
-                type="email"
-                placeholder="Your Email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                className="w-full border px-3 py-2 rounded-lg"
-              />
-
-              <input
-                name="contact"
-                placeholder="Contact Number"
-                value={formData.contact}
-                onChange={handleInputChange}
-                required
-                className="w-full border px-3 py-2 rounded-lg"
-              />
-
-              <textarea
-                name="message"
-                placeholder="Message"
-                rows={4}
-                value={formData.message}
-                onChange={handleInputChange}
-                className="w-full border px-3 py-2 rounded-lg"
-              />
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700"
-              >
-                {isLoading ? "Sending..." : "Submit Enquiry"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default ProductPage;

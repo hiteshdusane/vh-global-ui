@@ -1,122 +1,67 @@
-import { Mail, Phone, MapPin } from "lucide-react";
+import { ArrowUp, ArrowUpRight, Globe, Mail, MapPin, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMainCategories } from "../hooks/useProducts";
 
-const Footer = () => {
+const exploreLinks = [
+  { label: "Home", to: "/" },
+  { label: "About & Expertise", to: "/about" },
+  { label: "Cocopeat specifications", to: "/about#technical-specifications" },
+  { label: "Production process", to: "/about#production-process" },
+  { label: "Contact us", to: "/contact" },
+];
+
+export default function Footer() {
   const { data: mainCategoriesData } = useMainCategories();
 
   return (
-    <footer className="bg-gray-900 text-white rounded-t-[50px] pt-6 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Company Info */}
-          <div className="lg:col-span-1">
-            {/* <div className="bg-white text-center flex items-center justify-center mb-2 py-2 rounded-[50px]"> */}
-            <Link to="/" className="flex items-center space-x-2">
-              <img
-                src="/images/logo-light.png"
-                alt="VHN Global Logo"
-                className="h-16 w-auto"
-                // fetchpriority="high"
-              />
-            </Link>
-            {/* </div> */}
-            <p className="text-gray-300 mb-6 leading-relaxed">
-              VHN Global sources and exports high-quality agricultural products
-              across India and to international markets. We focus on quality,
-              packaging, and logistics to ensure products arrive fresh and
-              market-ready for buyers worldwide.
-            </p>
-            <div className="flex space-x-4"></div>
+    <footer className="site-footer" aria-label="VHN Global footer">
+      <div className="footer-inner">
+        <section className="footer-invitation" aria-labelledby="footer-heading">
+          <div>
+            <p className="footer-label mb-3">Rooted in Nature, Growing Worldwide</p>
+            <h2 id="footer-heading" className="text-2xl sm:text-3xl lg:text-4xl font-semibold mb-3">Your next connection starts here.</h2>
+            <p className="footer-muted leading-relaxed">Fresh fruits, vegetables, or cocopeat. Tell us what you’re sourcing.</p>
+          </div>
+          <Link to="/contact" className="btn-primary inline-flex shrink-0">Start a conversation <ArrowUpRight className="w-4 h-4 shrink-0" aria-hidden="true" /></Link>
+        </section>
+
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <Link to="/" className="inline-flex mb-5" aria-label="VHN Global home"><img src="/images/logo.webp" width={144} height={64} alt="VHN Global" className="h-14 w-auto max-w-full object-contain" loading="lazy" decoding="async" /></Link>
+            <p className="footer-muted text-sm leading-7">VHN Global connects buyers with fresh fruits, vegetables, and cocopeat from India. Explore agricultural products for your market and growing needs.</p>
+            <p className="footer-origin"><Globe className="w-4 h-4 shrink-0" aria-hidden="true" />From India to your market</p>
           </div>
 
-          {/* Products */}
-          <div>
-            <h4 className="text-lg font-semibold mb-6">Products</h4>
-            <ul className="space-y-3">
+          <nav aria-labelledby="footer-explore-heading">
+            <h3 id="footer-explore-heading" className="footer-label mb-3">Explore</h3>
+            <ul>{exploreLinks.map(({ label, to }) => <li key={to}><Link to={to} className="footer-link">{label}</Link></li>)}</ul>
+          </nav>
+
+          <nav aria-labelledby="footer-products-heading">
+            <h3 id="footer-products-heading" className="footer-label mb-3">Our products</h3>
+            <ul>
+              <li><Link to="/products" className="footer-link">All products <ArrowUpRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" /></Link></li>
               {mainCategoriesData?.data?.map((category) => (
-                <li key={category.productMainCategoryId}>
-                  <Link
-                    to={`/products?main=${category.productMainCategoryId}`}
-                    className="text-gray-300 hover:text-emerald-400 transition-colors"
-                  >
-                    {category.name}
-                  </Link>
-                </li>
+                <li key={category.productMainCategoryId}><Link to={`/products?main=${category.productMainCategoryId}`} className="footer-link">{category.name}</Link></li>
               ))}
             </ul>
-          </div>
+          </nav>
 
-          {/* Contact Info */}
-          <div>
-            <h4 className="text-lg font-semibold mb-6">Contact</h4>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <span className="text-gray-300 text-sm">
-                  Pune, India
-                </span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <span className="text-gray-300 text-sm">+91-7276800399</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <a
-                  href="mailto:info@vhnglobal.com?subject=Business Inquiry&body=Hello VHN Global Team,"
-                  className="text-gray-300 text-sm hover:underline"
-                >
-                  info@vhnglobal.com
-                </a>
-              </div>
+          <div aria-labelledby="footer-contact-heading">
+            <h3 id="footer-contact-heading" className="footer-label mb-4">Let’s stay connected</h3>
+            <div className="grid gap-3">
+              <a href="mailto:info@vhnglobal.com" className="footer-contact-link"><span className="footer-contact-icon"><Mail className="w-4 h-4" aria-hidden="true" /></span><span><span className="footer-contact-label">Email our team</span><span className="footer-contact-value">info@vhnglobal.com</span></span></a>
+              <a href="tel:+917276800399" className="footer-contact-link"><span className="footer-contact-icon"><Phone className="w-4 h-4" aria-hidden="true" /></span><span><span className="footer-contact-label">Give us a call</span><span className="footer-contact-value">+91 72768 00399</span></span></a>
+              <a href="https://www.google.com/maps/search/?api=1&query=Pune%2C+India" target="_blank" rel="noreferrer" className="footer-contact-link"><span className="footer-contact-icon"><MapPin className="w-4 h-4" aria-hidden="true" /></span><span><span className="footer-contact-label">Find us</span><span className="footer-contact-value">Pune, India</span></span><ArrowUpRight className="w-3.5 h-3.5 shrink-0 ml-auto" aria-hidden="true" /></a>
             </div>
-
-            {/* <div className="mt-8">
-              <h5 className="font-semibold mb-3">Newsletter</h5>
-              <div className="flex">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-white placeholder-gray-400"
-                />
-                <button className="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-r-lg transition-colors">
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
-            </div> */}
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm mb-4 md:mb-0">
-            © {new Date().getFullYear()} VHN Global. All rights reserved.
-          </p>
-          {/* <div className="flex space-x-6 text-sm">
-            <a
-              href="#"
-              className="text-gray-400 hover:text-emerald-400 transition-colors"
-            >
-              Privacy Policy
-            </a>
-            <a
-              href="#"
-              className="text-gray-400 hover:text-emerald-400 transition-colors"
-            >
-              Terms of Service
-            </a>
-            <a
-              href="#"
-              className="text-gray-400 hover:text-emerald-400 transition-colors"
-            >
-              Imprint
-            </a>
-          </div> */}
+        <div className="footer-bottom">
+          <p>© {new Date().getFullYear()} VHN Global. All rights reserved.</p>
+          <button type="button" className="footer-back-top" onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })}>Back to top <ArrowUp className="w-4 h-4" aria-hidden="true" /></button>
         </div>
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}

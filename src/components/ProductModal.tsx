@@ -1,3 +1,4 @@
+import ModalBackdrop from "./ModalBackdrop";
 import React, { useEffect, useState } from "react";
 import { X, Package, Tag } from "lucide-react";
 import { ProductResponse } from "../types/api";
@@ -46,7 +47,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
     if (!url) return "";
     if (url.includes("/images/uploads/images/")) {
       const filename = url.split("/").pop()?.replace(".png", ".webp") || "";
-      return `${process.env.BACKEND_URL}/images/${filename}`;
+      return `${import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL}/images/${filename}`;
     }
     return url;
   };
@@ -85,27 +86,27 @@ const ProductModal: React.FC<ProductModalProps> = ({
 
   /* ---------------- UI ---------------- */
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <ModalBackdrop onClose={onClose}>
+      <div role="dialog" aria-modal="true" aria-label={product.name} className="modal-panel glass-panel rounded-2xl max-w-4xl w-full ">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b">
+        <div className="flex justify-between items-center gap-3 p-5 sm:p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            aria-label="Close product details" className="p-3 shrink-0 hover:bg-gray-100 rounded-lg"
           >
             <X className="w-6 h-6 text-gray-500" />
           </button>
         </div>
 
-        <div className="p-6 grid lg:grid-cols-2 gap-8">
+        <div className="p-5 sm:p-6 grid lg:grid-cols-2 gap-8">
           {/* Images */}
           <div>
             <div className="mb-4 bg-gray-50 rounded-xl flex items-center justify-center">
               <img
                 src={mainImage}
                 alt={product.name}
-                className="max-h-96 object-contain rounded-xl"
+                className="w-full max-h-72 sm:max-h-96 object-contain rounded-xl"
               />
             </div>
 
@@ -129,7 +130,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
 
           {/* Details */}
           <div>
-            <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center gap-2 mb-4 text-sm text-gray-500">
               <Tag className="w-4 h-4 text-emerald-600" />
               {product.productSubCategory.productMainCategory.name} →{" "}
               {product.productSubCategory.name}
@@ -151,7 +152,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </ModalBackdrop>
   );
 };
 

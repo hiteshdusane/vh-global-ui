@@ -29,20 +29,20 @@ const ProductMegaMenu: React.FC<ProductMegaMenuProps> = ({
       {isVisible && (
         <>
           <div
-            className="absolute left-0 top-full w-full z-60"
+            className="absolute left-0 top-full w-full z-50"
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
           >
-            <div className="h-8 w-full bg-white" />
+            <div className="h-3 w-full" />
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="bg-white shadow-xl border-t border-gray-100 rounded-b-[40px] z-60"
+              className="nav-dropdown glass-panel max-h-[70svh] overflow-y-auto"
             >
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <div className="grid grid-cols-6 gap-8 mb-8 md:mb-12 lg:mb-16">
+              <div className="nav-dropdown-grid mb-8">
                 {mainCategoriesData?.data?.map((category, index) => (
                   <motion.div
                     key={category.productMainCategoryId}
@@ -57,8 +57,8 @@ const ProductMegaMenu: React.FC<ProductMegaMenuProps> = ({
                       onClick={onClose}
                       className="block group"
                     >
-                      <div className="bg-white rounded-lg group">
-                        <h3 className="font-medium text-gray-800 text-base group-hover:text-emerald-700 transition-colors">
+                      <div className="rounded-lg group">
+                        <h3 className="font-bold text-emerald-950 text-base group-hover:text-emerald-700 transition-colors">
                           {category.name}
                         </h3>
                       </div>
@@ -83,13 +83,13 @@ const ProductMegaMenu: React.FC<ProductMegaMenuProps> = ({
                             key={subCategory.productSubCategoryId}
                             to={`/products?main=${category.productMainCategoryId}&sub=${subCategory.productSubCategoryId}`}
                             onClick={onClose}
-                            className="block text-sm text-gray-500 hover:text-emerald-600 transition-colors py-1"
+                            className="nav-dropdown-link block text-sm font-medium transition-colors px-3 py-2 -mx-3 rounded-lg"
                           >
                             {subCategory.name}
                           </Link>
                         ))}
                       <Link
-                        to={`/products?mainCategory=${category.productMainCategoryId}`}
+                        to={`/products?main=${category.productMainCategoryId}`}
                         onClick={onClose}
                         className="inline-flex items-center text-sm text-emerald-600 hover:text-emerald-700 font-medium mt-2"
                       >
@@ -107,7 +107,7 @@ const ProductMegaMenu: React.FC<ProductMegaMenuProps> = ({
                     onClick={onClose}
                     className="block group"
                   >
-                    <div className="bg-white rounded-lg group flex w-full items-center justify-between">
+                    <div className="rounded-lg group flex w-full items-center justify-between">
                       <h3 className="font-medium text-gray-800 text-base group-hover:text-emerald-700 transition-colors">
                         Explore All Products
                       </h3>
