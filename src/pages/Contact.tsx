@@ -1,5 +1,8 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { ArrowUpRight, CheckCircle2, Globe2, Leaf, Loader2, Mail, MapPin, Phone, Send } from "lucide-react";
+import FrostedSelect from "../components/FrostedSelect";
+import { submitEnquiry } from "../services/enquiry";
+import { trackEvent } from "../services/analytics";
 
 const initialForm = { name: "", email: "", contact: "", subject: "product-info", message: "" };
 const subjects = [
@@ -22,6 +25,13 @@ export default function Contact() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting) return;
+    const enquiry = Object.fromEntries(Object.entries(formData).map(([key, value]) => [key, value.trim()])) as typeof formData;
+    if (!enquiry.name || !enquiry.message) {
+      setStatus({ type: "error", message: "Please enter your name and message." });
+      const field = event.currentTarget.elements.namedItem(!enquiry.name ? "name" : "message");
+      if (field instanceof HTMLElement) field.focus();
+      return;
+    }
     const endpoint = import.meta.env.VITE_APP_SCRIPT_EXCEL_URL?.trim();
     if (!endpoint) {
       setStatus({ type: "error", message: "The enquiry form is temporarily unavailable. Please email info@vhnglobal.com or call +91 72768 00399 to reach us directly." });
@@ -30,13 +40,8 @@ export default function Contact() {
     setIsSubmitting(true);
     setStatus(null);
     try {
-      // Apps Script uses an opaque response; it cannot confirm delivery to the inbox.
-      await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=UTF-8" },
-        body: JSON.stringify(formData),
-        mode: "no-cors",
-      });
+      await submitEnquiry(enquiry);
+      trackEvent("enquiry_submitted", { form_source: "contact", delivery_status: "unconfirmed" });
       setStatus({ type: "success", message: "Your enquiry has been submitted. Thank you for connecting with VHN Global." });
       setFormData(initialForm);
     } catch {
@@ -107,7 +112,7 @@ export default function Contact() {
             </div>
             <p className="contact-form-description">Looking for product details, bulk supply, or a new partnership? Share a few details and let’s take it from there.</p>
 
-            <form onSubmit={handleSubmit} className="contact-form">
+            <form onSubmit={handleSubmit} className="contact-form" aria-busy={isSubmitting}>
               <fieldset disabled={isSubmitting} className="contact-fieldset">
                 <legend className="sr-only">Your enquiry details</legend>
                 <div className="contact-field-row">
@@ -125,10 +130,12 @@ export default function Contact() {
                   <input id="contact-phone" name="contact" type="tel" autoComplete="tel" value={formData.contact} onChange={handleChange} maxLength={40} placeholder="Include your country code" className="input" />
                 </div>
                 <div className="contact-field">
-                  <label htmlFor="contact-subject">What can we help you with? <span aria-hidden="true">*</span></label>
-                  <select id="contact-subject" name="subject" value={formData.subject} onChange={handleChange} required className="input">
-                    {subjects.map((subject) => <option key={subject.value} value={subject.value}>{subject.label}</option>)}
-                  </select>
+                  <label id="contact-subject-label" htmlFor="contact-subject">What can we help you with? <span aria-hidden="true">*</span></label>
+                  <FrostedSelect id="contact-subject" name="subject" value={formData.subject} options={subjects}
+                    disabled={isSubmitting} required onChange={(subject) => {
+                      setFormData((current) => ({ ...current, subject }));
+                      setStatus(null);
+                    }} />
                 </div>
                 <div className="contact-field">
                   <label htmlFor="contact-message">Your message <span aria-hidden="true">*</span></label>

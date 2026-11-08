@@ -7,6 +7,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import ProductEnquiryDialog from "../components/ProductEnquiryDialog";
 import ProductGallery from "../components/ProductGallery";
 import { useMainCategories, useProduct, useSubCategories } from "../hooks/useProducts";
+import { trackEvent } from "../services/analytics";
 
 export default function ProductPage() {
   const { productId = "" } = useParams();
@@ -78,7 +79,10 @@ export default function ProductPage() {
                 <div className="product-enquiry-box">
                   <h2 className="font-semibold text-lg mb-2">Discuss your requirements</h2>
                   <p className="text-sm text-gray-500 leading-relaxed mb-5">Share quantities and destination to discuss availability and supply options with our team.</p>
-                  <button type="button" className="btn-primary inline-flex w-full" onClick={() => setEnquiryOpen(true)}>Enquire Now <ArrowUpRight className="w-4 h-4 shrink-0" aria-hidden="true" /></button>
+                  <button type="button" className="btn-primary inline-flex w-full" onClick={() => {
+                    trackEvent("enquiry_open", { form_source: "product", product_id: product.productId });
+                    setEnquiryOpen(true);
+                  }}>Enquire Now <ArrowUpRight className="w-4 h-4 shrink-0" aria-hidden="true" /></button>
                   <a href={`mailto:info@vhnglobal.com?subject=${encodeURIComponent(`Product enquiry: ${product.name}`)}`} className="product-email-link"><Mail className="w-4 h-4 shrink-0" aria-hidden="true" />Email our team</a>
                 </div>
               </div>

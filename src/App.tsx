@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import ProductPage from './pages/ProductPage';
 import PageLayout from './components/PageLayout';
 import { MotionConfig } from 'framer-motion';
+import Analytics from './components/Analytics';
 
 function AboutRedirect({ section = '' }: { section?: string }) {
   const { search, hash } = useLocation();
@@ -20,6 +21,7 @@ function App() {
   return (
     <QueryProvider>
       <Router>
+        <Analytics />
         <MotionConfig reducedMotion="user">
         <div className="site-shell min-h-screen">
           <Header />

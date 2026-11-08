@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-export default function ModalBackdrop({ children, onClose }: { children: ReactNode; onClose: () => void }) {
+export default function ModalBackdrop({ children, onClose, className = "" }: { children: ReactNode; onClose: () => void; className?: string }) {
   const backdrop = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -35,7 +35,9 @@ export default function ModalBackdrop({ children, onClose }: { children: ReactNo
   }, []);
 
   return createPortal(
-    <div ref={backdrop} className="modal-backdrop fixed inset-0 flex items-center justify-center">
+    <div ref={backdrop} className={`modal-backdrop fixed inset-0 flex items-center justify-center ${className}`} onClick={(event) => {
+      if (event.target === event.currentTarget) close.current();
+    }}>
       {children}
     </div>, document.body,
   );

@@ -6,6 +6,7 @@ import ProductMegaMenu from "./ProductMegaMenu";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMegaMenuVisible, setIsMegaMenuVisible] = useState(false);
+  const headerShell = useRef<HTMLDivElement>(null);
   const timeout = useRef<ReturnType<typeof setTimeout>>();
   const location = useLocation();
   const openProducts = () => {
@@ -22,11 +23,23 @@ const Header = () => {
     clearTimeout(timeout.current);
   }, [location]);
   useEffect(() => () => clearTimeout(timeout.current), []);
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const closeOnOutsidePress = (event: PointerEvent) => {
+      if (event.target instanceof Node && !headerShell.current?.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsidePress);
+    return () => document.removeEventListener("pointerdown", closeOnOutsidePress);
+  }, [isMenuOpen]);
 
   return (
     <header className="site-header">
       <a href="#main-content" className="skip-link">Skip to content</a>
-      <div className="header-shell" onBlur={(event) => {
+      <div ref={headerShell} className="header-shell" onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
           setIsMegaMenuVisible(false);
         }
