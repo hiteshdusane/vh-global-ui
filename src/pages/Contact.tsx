@@ -41,11 +41,11 @@ export default function Contact() {
     setStatus(null);
     try {
       await submitEnquiry(enquiry);
-      trackEvent("enquiry_submitted", { form_source: "contact", delivery_status: "unconfirmed" });
+      trackEvent("generate_lead", { form_source: "contact", delivery_status: "confirmed" });
       setStatus({ type: "success", message: "Your enquiry has been submitted. Thank you for connecting with VHN Global." });
       setFormData(initialForm);
     } catch {
-      setStatus({ type: "error", message: "We couldn’t submit your enquiry. Please try again or email info@vhnglobal.com." });
+      setStatus({ type: "error", message: "We couldn’t confirm your enquiry. Please email info@vhnglobal.com before sending it again." });
     } finally {
       setIsSubmitting(false);
     }

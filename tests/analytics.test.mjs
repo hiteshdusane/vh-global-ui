@@ -56,13 +56,13 @@ test('loads once, disables automatic pageviews, and deduplicates consecutive rou
 test('reported URLs omit query strings, fragments, and external referrer paths', () => {
   const fixture = setup();
   fixture.api.trackPageView('/contact');
-  fixture.api.trackEvent('enquiry_submitted', { form_source: 'contact', delivery_status: 'unconfirmed' });
+  fixture.api.trackEvent('generate_lead', { form_source: 'contact', delivery_status: 'confirmed' });
   const payload = JSON.stringify(fixture.commands());
   assert.equal(payload.includes('private'), false);
   const pageView = fixture.commands().find(([, name]) => name === 'page_view')[2];
   assert.equal(pageView.page_referrer, 'https://example.com');
   assert.equal(pageView.page_location, 'https://vhnglobal.com/contact');
-  assert.equal(fixture.commands().some(([, name]) => name === 'generate_lead'), false);
+  assert.equal(fixture.commands().find(([, name]) => name === 'generate_lead')[2].delivery_status, 'confirmed');
 });
 
 test('explicit debug mode enables development testing', () => {
@@ -75,5 +75,5 @@ test('explicit debug mode enables development testing', () => {
 test('a blocked Google tag does not throw into the application', () => {
   const fixture = setup({}, { gtag() { throw new Error('blocked'); } });
   assert.doesNotThrow(() => fixture.api.trackPageView('/contact'));
-  assert.doesNotThrow(() => fixture.api.trackEvent('enquiry_submitted', { form_source: 'contact' }));
+  assert.doesNotThrow(() => fixture.api.trackEvent('generate_lead', { form_source: 'contact' }));
 });

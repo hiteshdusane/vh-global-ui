@@ -67,7 +67,7 @@ export function trackPageView(pathname: string) {
 }
 
 export function trackEvent(
-  name: "enquiry_open" | "enquiry_submitted" | "contact_click",
+  name: "enquiry_open" | "generate_lead" | "contact_click",
   parameters: AnalyticsParameters,
 ) {
   if (!initializeAnalytics()) return;

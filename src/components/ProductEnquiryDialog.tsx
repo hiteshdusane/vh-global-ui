@@ -31,12 +31,12 @@ export default function ProductEnquiryDialog({ productName, onClose }: { product
     setIsSubmitting(true);
     setStatus(null);
     try {
-      await submitEnquiry({ ...enquiry, subject: `Product enquiry: ${productName}` });
-      trackEvent("enquiry_submitted", { form_source: "product", delivery_status: "unconfirmed" });
+      await submitEnquiry({ ...enquiry, subject: `Product enquiry: ${productName}` }, "product");
+      trackEvent("generate_lead", { form_source: "product", delivery_status: "confirmed" });
       setStatus({ type: "success", message: "Your enquiry has been submitted. Thank you for contacting VHN Global." });
       setForm(emptyForm);
     } catch {
-      setStatus({ type: "error", message: "We couldn’t submit your enquiry. Please try again or email info@vhnglobal.com." });
+      setStatus({ type: "error", message: "We couldn’t confirm your enquiry. Please email info@vhnglobal.com before sending it again." });
     } finally {
       setIsSubmitting(false);
     }
