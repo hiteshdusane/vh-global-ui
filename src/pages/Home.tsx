@@ -1,226 +1,131 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  ArrowRight,
-  Leaf,
-  Droplets,
-  Award,
-  Users,
-  Globe,
-} from "lucide-react";
+import { useState, useSyncExternalStore, type PointerEvent } from "react";
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { ArrowDown, ArrowRight, ArrowUpRight, Boxes, Check, Globe2, Layers, Leaf, Play, Sprout } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useMainCategories, useProducts } from "../hooks/useProducts";
+import { useProducts } from "../hooks/useProducts";
 import ProductCard from "../components/ProductCard";
-import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
+import "./Home.css";
 
-const Home = () => {
-  const { data: mainCategoriesData } = useMainCategories();
-  const { data: featuredProductsData } = useProducts({ page: 0, pageSize: 8 });
+const motionPreference = "(prefers-reduced-motion: reduce)";
+const getMotionPreference = () => window.matchMedia(motionPreference).matches;
+const subscribeToMotionPreference = (notify: () => void) => {
+  const query = window.matchMedia(motionPreference);
+  query.addEventListener("change", notify);
+  return () => query.removeEventListener("change", notify);
+};
 
-  const getCategoryImageUrl = (categoryName: string) => {
-    const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
-    const fileName = categoryName
-      .toLowerCase()
-      .replace(/ & /g, "_")
-      .replace(/ /g, "_");
-    return `${backendUrl}/api/v1/products/get-image/${fileName}.jpg`;
+const scenes = [
+  { label: "The origin", title: "It starts with a coconut.", image: "harvest", alt: "Illustration of mature coconuts growing on a palm", note: "Rooted in nature", icon: Leaf },
+  { label: "The process", title: "A new purpose for every husk.", image: "separation", alt: "Illustration of coconut husks being separated into coir fibre and pith", note: "Shaped with purpose", icon: Layers },
+  { label: "The product", title: "Ready for what comes next.", image: "blocks", alt: "Illustration of compressed cocopeat blocks beside a hydraulic press", note: "Made for possibility", icon: Boxes },
+];
+const benefits = [
+  { icon: Sprout, number: "01", title: "A format for your needs.", text: "Cocopeat blocks, bricks, grow bags, loose cocopeat, coco chips, and natural coir ropes. Explore the range that fits your application." },
+  { icon: Layers, number: "02", title: "Details before decisions.", text: "From product specifications to packaging and quantities, start with the information that matters to your business." },
+  { icon: Globe2, number: "03", title: "From India. To your market.", text: "Tell us your destination and requirements. Our team will help you explore availability and shipment options." },
+];
+
+export default function Home() {
+  const [sceneIndex, setSceneIndex] = useState(2);
+  const [category, setCategory] = useState("all");
+  const reducedMotion = useSyncExternalStore(subscribeToMotionPreference, getMotionPreference, () => true);
+  const motionEnabled = !reducedMotion;
+  const { data, isLoading, isError, refetch } = useProducts({ page: 0, pageSize: 100, sortBy: "name", sortDi: "asc" });
+  const collectionFailed = isError || data?.success === false;
+  const products = data?.data?.content ?? [];
+  const categories = [...new Map(products.flatMap((product) => {
+    const main = product.productSubCategory?.productMainCategory;
+    return main ? [[main.productMainCategoryId, main] as const] : [];
+  })).values()];
+  const selectedCategory = categories.some((item) => item.productMainCategoryId === category) ? category : "all";
+  const visibleProducts = products.filter((product) => selectedCategory === "all" || product.productSubCategory?.productMainCategory?.productMainCategoryId === selectedCategory).slice(0, 8);
+  const scene = scenes[sceneIndex];
+  const SceneIcon = scene.icon;
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const springX = useSpring(pointerX, { stiffness: 100, damping: 22 });
+  const springY = useSpring(pointerY, { stiffness: 100, damping: 22 });
+  const rotateY = useTransform(springX, [-0.5, 0.5], [-3, 3]);
+  const rotateX = useTransform(springY, [-0.5, 0.5], [3, -3]);
+  const moveImage = (event: PointerEvent<HTMLDivElement>) => {
+    if (!motionEnabled || event.pointerType !== "mouse") return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    pointerX.set((event.clientX - bounds.left) / bounds.width - 0.5);
+    pointerY.set((event.clientY - bounds.top) / bounds.height - 0.5);
+  };
+  const resetImage = () => { pointerX.set(0); pointerY.set(0); };
+  const reveal = {
+    initial: motionEnabled ? { opacity: 0, y: 24 } : false as const,
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.12 },
+    transition: { duration: motionEnabled ? 0.6 : 0 },
   };
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="hero-section">
-        <img className="hero-image" src="/images/cocopeat-drying-yard.png" alt="Cocopeat drying yard concept with compressed blocks and coconut palms" fetchPriority="high" />
-        <div className="hero-shade" aria-hidden="true" />
-
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
-          <div className="hero-copy glass-dark">
-            <span className="hero-pill"><Leaf className="w-3 h-3" /> Fruits, vegetables &amp; cocopeat</span>
-            <p className="text-sm font-medium text-white/80 mb-3 tracking-wide">
-              Rooted in Nature, Growing Worldwide
-            </p>
-            <h1 className="font-bold mb-5">
-              Global Exporters of
-              <span className="text-cyan-300 block">Fruits, Vegetables &amp; Cocopeat</span>
-            </h1>
-            <p className="text-base sm:text-lg mb-8 text-gray-200 leading-relaxed">
-              From fresh fruits and vegetables to coconut-based growing media,
-              VHN Global connects India's agricultural products with growers,
-              distributors, and buyers worldwide.
-            </p>
-            <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
-              <Link
-                to="/products"
-                className="bg-emerald-600 hover:bg-emerald-500 px-8 py-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center group"
-              >
-                Explore Products
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link to="/contact" className="btn-secondary">Discuss your requirements <ArrowRight className="w-4 h-4" /></Link>
-              {/* <button className="border-2 border-white hover:bg-white hover:text-emerald-800 px-8 py-4 rounded-lg font-semibold transition-all duration-300">
-                Watch Tutorial
-              </button> */}
-            </div>
-            <div className="hero-footnote">
-              <span>01 / Fresh fruits</span>
-              <span>02 / Vegetables</span>
-              <span>03 / Cocopeat</span>
-            </div>
+    <div className="home-page" data-motion={motionEnabled ? "on" : "off"}>
+      <section className="home-hero" aria-labelledby="home-heading">
+        <div className="home-ambient home-ambient-sage" aria-hidden="true" />
+        <div className="home-ambient home-ambient-sand" aria-hidden="true" />
+        <div className="home-container">
+          <div className="home-topline">
+            <span><span className="home-status-dot" /> Rooted in Nature, Growing Worldwide</span>
           </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="feature-section py-12 sm:py-20" aria-labelledby="why-choose-heading">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12" data-reveal>
-            <span className="section-label">A better foundation for growth</span>
-            <h2 id="why-choose-heading" className="text-3xl sm:text-4xl font-heading font-black text-gray-900 mb-3">
-              Why Choose VHN Global
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-500 max-w-3xl mx-auto leading-relaxed">
-              Fresh fruits, vegetables, and cocopeat, with thoughtful sourcing
-              and export support for buyers worldwide.
-            </p>
-          </div>
-          <div className="grid lg:grid-cols-3 gap-5 sm:gap-6">
-            {[
-              {
-                icon: <Leaf className="w-8 h-8 text-emerald-600" />,
-                title: "Fresh Produce & Cocopeat",
-                desc: "Explore fresh fruits and vegetables for your market, alongside coconut-based growing media for nurseries, horticulture, and modern agriculture.",
-              },
-              {
-                icon: <Droplets className="w-8 h-8 text-cyan-600" />,
-                title: "Your Requirements First",
-                desc: "From produce sourcing to cocopeat supply, share your product specifications, quantities, and destination so we can help you explore suitable options.",
-              },
-              {
-                icon: <Globe className="w-8 h-8 text-emerald-700" />,
-                title: "From India to Your Market",
-                desc: "Planning an international order? Connect with our team to discuss product availability, packaging, and shipment requirements for your destination.",
-              },
-            ].map((feature) => (
-              <article
-                key={feature.title}
-                className="glass-panel feature-card p-6 sm:p-8"
-                data-reveal
-              >
-                <div className="feature-icon w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center mb-6" aria-hidden="true">
-                  {feature.icon}
+          <div className="home-hero-grid">
+            <motion.div className="home-hero-copy" initial={motionEnabled ? { opacity: 0, y: 22 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: motionEnabled ? 0.7 : 0 }}>
+              <span className="home-eyebrow"><Leaf className="w-3.5 h-3.5" aria-hidden="true" /> Coconut-based. Possibility-filled.</span>
+              <h1 id="home-heading">Naturally rooted.<br /><span>Globally<br className="home-heading-break" /> connected.</span></h1>
+              <p className="home-hero-intro">Cocopeat &amp; coir, from India.</p>
+              <p className="home-hero-description">A new life for the coconut husk. Explore growing media and natural coir products, thoughtfully sourced for your business and the world you grow.</p>
+              <div className="home-hero-actions">
+                <Link to="/products" className="home-primary">Explore the collection <ArrowUpRight className="w-4 h-4" aria-hidden="true" /></Link>
+                <Link to="/about#production-process" className="home-text-link">See how it’s made <span className="home-play-icon"><Play className="w-3 h-3" aria-hidden="true" /></span></Link>
+              </div>
+              <div className="home-hero-footnote"><span className="home-origin-icon"><Globe2 className="w-5 h-5" aria-hidden="true" /></span><p>From Pune, India.<br /><strong>Open to a world of connections.</strong></p><a href="#home-collection" className="home-scroll-link" aria-label="Scroll to our product collection"><ArrowDown className="w-4 h-4" aria-hidden="true" /></a></div>
+            </motion.div>
+            <div className="home-hero-visual" onPointerMove={moveImage} onPointerLeave={resetImage}>
+              <div className="home-orbit home-orbit-one" aria-hidden="true" /><div className="home-orbit home-orbit-two" aria-hidden="true" />
+              <motion.div className="home-image-frame" style={{ rotateX: motionEnabled ? rotateX : 0, rotateY: motionEnabled ? rotateY : 0 }}>
+                <div className="home-hero-photo">
+                  <AnimatePresence initial={false}>
+                    <motion.img key={scene.image} src={`/images/cocopeat-process-${scene.image}.webp`} width={1536} height={1024} alt={scene.alt} fetchPriority="high" decoding="async" initial={{ opacity: motionEnabled ? 0 : 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: motionEnabled ? 0.55 : 0 }} />
+                  </AnimatePresence>
+                  <span className="home-photo-tag"><span /> Explore our story</span>
+                  <div className="home-image-caption" aria-live="polite"><span className="home-caption-icon"><SceneIcon className="w-5 h-5" aria-hidden="true" /></span><div><span>{scene.note}</span><strong>{scene.title}</strong></div><span className="home-caption-index">0{sceneIndex + 1}</span></div>
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-900">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-500 leading-relaxed">{feature.desc}</p>
-              </article>
-            ))}
+                <div className="home-scene-selector" role="group" aria-label="Explore the coconut journey">{scenes.map((item, index) => <button type="button" key={item.image} onClick={() => setSceneIndex(index)} aria-pressed={sceneIndex === index}><span>0{index + 1}</span>{item.label}<span className="home-scene-dot" aria-hidden="true" /></button>)}</div>
+              </motion.div>
+              <div className="home-floating-note home-floating-leaf"><span><Leaf className="w-5 h-5" aria-hidden="true" /></span><div><strong>Nature, reimagined.</strong><small>Coconut husk. New possibilities.</small></div></div>
+              <Link to="/about#technical-specifications" className="home-floating-note home-floating-spec"><Layers className="w-5 h-5" aria-hidden="true" /><span>Know your cocopeat</span><ArrowUpRight className="w-4 h-4" aria-hidden="true" /></Link>
+            </div>
           </div>
+          <div className="home-material-strip"><span>One natural source.<br /><strong>So many possibilities.</strong></span><div>{["Cocopeat", "Coco chips", "Coir ropes"].map((name) => <span key={name}><Leaf className="w-3.5 h-3.5" aria-hidden="true" />{name}</span>)}</div><span className="home-strip-end">Discover your next material <ArrowDown className="w-4 h-4" aria-hidden="true" /></span></div>
         </div>
       </section>
 
-      {/* Excellence Section */}
-      <section className="feature-section py-12 sm:py-20" aria-labelledby="sourcing-heading">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="glass-panel feature-card sourcing-card p-6 sm:p-12 max-w-5xl mx-auto text-center" data-reveal>
-            <span className="section-label">From Indian farms to global markets</span>
-            <div>
-              <h2 id="sourcing-heading" className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
-                Naturally sourced.
-                <span className="text-emerald-700 block">Globally connected.</span>
-              </h2>
-              <p className="text-lg text-gray-500 mb-8 leading-relaxed">
-                VHN Global sources and exports fresh fruits, vegetables, and
-                cocopeat from India, connecting agricultural producers with
-                buyers worldwide. From produce for your market to coconut-based
-                growing media for your crops, we help you explore product,
-                packaging, and shipment options for your requirements.
-              </p>
-            </div>
+      <motion.section {...reveal} id="home-collection" className="home-container home-collection" aria-labelledby="home-collection-heading">
+        <div className="home-section-heading"><div><span className="section-label">The VHN collection</span><h2 id="home-collection-heading">Natural materials.<br /><span>Real possibilities.</span></h2></div><div><p>Find the right starting point for your growing setup, supply needs, or next business connection.</p><Link to="/products" className="home-text-link">Explore all products <ArrowUpRight className="w-4 h-4" aria-hidden="true" /></Link></div></div>
+        {!isLoading && !collectionFailed && products.length > 0 && <div className="home-collection-toolbar"><div className="home-category-picker" role="group" aria-label="Filter homepage products by category"><button type="button" aria-pressed={selectedCategory === "all"} onClick={() => setCategory("all")}>All products <span>{products.length}</span></button>{categories.map((item) => <button type="button" key={item.productMainCategoryId} aria-pressed={selectedCategory === item.productMainCategoryId} onClick={() => setCategory(item.productMainCategoryId)}>{item.name}</button>)}</div><span className="home-result-count" role="status">{visibleProducts.length} products to explore</span></div>}
+        {isLoading ? <div className="home-product-grid" role="status" aria-label="Loading products">{[0, 1, 2, 3].map((index) => <div className="home-product-skeleton" key={index}><span /><span /><span /></div>)}</div>
+          : collectionFailed ? <div className="home-collection-message"><ErrorMessage message="We couldn’t load the collection. Please try again." onRetry={() => { void refetch(); }} /></div>
+            : products.length === 0 ? <div className="home-collection-message"><Leaf className="w-8 h-8" aria-hidden="true" /><h3>Let’s find what you need.</h3><p>Contact our team for the current product range and availability.</p><Link to="/contact" className="home-text-link">Discuss your requirements <ArrowRight className="w-4 h-4" /></Link></div>
+              : <motion.div layout={motionEnabled} className="home-product-grid"><AnimatePresence mode="popLayout">{visibleProducts.map((product) => <motion.div layout={motionEnabled} key={product.productId} initial={motionEnabled ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: motionEnabled ? 0.3 : 0 }} whileHover={motionEnabled ? { y: -6 } : undefined}><ProductCard product={product} /></motion.div>)}</AnimatePresence></motion.div>}
+      </motion.section>
 
-            <ul className="flex flex-wrap justify-center gap-3 mb-8" aria-label="Our product focus">
-              {['Fresh fruits', 'Vegetables', 'Cocopeat'].map((category) => (
-                <li key={category} className="sourcing-pill">
-                  <span aria-hidden="true" />{category}
-                </li>
-              ))}
-            </ul>
-
-            <div className="flex justify-center">
-              <Link
-                to="/about"
-                className="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors group"
-              >
-                Learn More
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </div>
+      <motion.section {...reveal} className="home-container home-story" aria-labelledby="home-story-heading">
+        <div className="home-story-glass">
+          <Link to="/about#production-process" className="home-story-image" aria-label="Explore the seven-stage cocopeat production process"><img src="/images/cocopeat-drying-yard.png" width={1536} height={1024} loading="lazy" decoding="async" alt="Illustration of a cocopeat drying yard surrounded by coconut palms" /><span className="home-story-image-label"><span className="home-story-play"><Play className="w-5 h-5" aria-hidden="true" /></span><span>Follow the transformation<small>Explore the production journey</small></span><ArrowUpRight className="w-5 h-5" aria-hidden="true" /></span></Link>
+          <div className="home-story-copy"><span className="section-label">A closer look</span><h2 id="home-story-heading">From husk.<br />To new <span>beginnings.</span></h2><p>There’s a story behind every block. Follow the coconut husk through separation, washing, drying, and compression to discover how cocopeat takes shape.</p><ol className="home-journey-stops"><li><Leaf aria-hidden="true" /><span>Natural origins</span></li><li><Layers aria-hidden="true" /><span>A considered process</span></li><li><Sprout aria-hidden="true" /><span>New growing possibilities</span></li></ol><Link to="/about#production-process" className="home-primary">Explore the 7 stages <ArrowRight className="w-4 h-4" aria-hidden="true" /></Link></div>
         </div>
-      </section>
+      </motion.section>
 
-      {/* Featured Products */}
-      <section className="py-12 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold font-heading text-gray-900 mb-3">
-              Featured Products
-            </h2>
-            <p className="text-xl text-gray-500">
-              Top export-ready products and popular listings
-            </p>
-          </div>
-
-          {featuredProductsData?.data?.content ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProductsData.data.content.slice(0, 8).map((product) => (
-                <ProductCard
-                  key={product.productId}
-                  product={product}
-                  viewMode="grid"
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex justify-center">
-              <LoadingSpinner size="lg" />
-            </div>
-          )}
-
-          <div className="text-center mt-12">
-            <Link
-              to="/products"
-              className="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold transition-colors group"
-            >
-              View All Products
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter Section */}
-      {/* <section className="py-16 bg-emerald-800 pb-32 -mb-[50px] relative z-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Stay Updated</h2>
-          <p className="text-emerald-100 mb-8 max-w-2xl mx-auto">
-            Get the latest aquascaping tips, product updates, and exclusive
-            offers delivered to your inbox.
-          </p>
-
-          <div className="max-w-md mx-auto flex gap-4">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg border border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-300"
-            />
-            <button className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-              Subscribe
-            </button>
-          </div>
-        </div>
-      </section> */}
+      <motion.section {...reveal} className="home-container home-benefits" aria-labelledby="home-benefits-heading">
+        <div className="home-section-heading"><div><span className="section-label">The way we work</span><h2 id="home-benefits-heading">Good materials.<br /><span>Better conversations.</span></h2></div><p>Thoughtful sourcing starts with understanding what matters to you.</p></div>
+        <div className="home-benefit-grid">{benefits.map(({ icon: Icon, number, title, text }) => <motion.article key={number} className="home-benefit-card" whileHover={motionEnabled ? { y: -6 } : undefined} transition={{ duration: 0.25 }}><div><span className="home-benefit-icon"><Icon className="w-6 h-6" aria-hidden="true" /></span><span className="home-benefit-number">{number}</span></div><h3>{title}</h3><p>{text}</p><span className="home-benefit-line" aria-hidden="true" /></motion.article>)}</div>
+      </motion.section>
+      <motion.section {...reveal} className="home-container home-contact" aria-labelledby="home-contact-heading">
+        <div className="home-contact-glass"><div className="home-contact-orbit" aria-hidden="true"><Globe2 /></div><div className="home-contact-copy"><span className="section-label">Your next connection starts here</span><h2 id="home-contact-heading">Let’s grow<br />something <span>together.</span></h2><p>Tell us what you need, where it’s going, and what matters most. We’ll take the next step with you.</p><div className="home-contact-points"><span><Check className="w-3.5 h-3.5" aria-hidden="true" /> Product enquiries</span><span><Check className="w-3.5 h-3.5" aria-hidden="true" /> Bulk requirements</span><span><Check className="w-3.5 h-3.5" aria-hidden="true" /> Export conversations</span></div></div><Link to="/contact" className="home-contact-button"><span>Start a <br />conversation</span><ArrowUpRight aria-hidden="true" /></Link></div>
+      </motion.section>
     </div>
   );
-};
-
-export default Home;
+}

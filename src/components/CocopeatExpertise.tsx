@@ -6,7 +6,7 @@ type Specification = { parameter: string; value: string; note?: string };
 const productProfile: Specification[] = [
   { parameter: "Product", value: "Cocopeat", note: "Coconut-based growing media" },
   { parameter: "Material", value: "Coconut coir pith" },
-  { parameter: "Applications", value: "Nurseries, horticulture, and modern agriculture" },
+  { parameter: "Applications", value: "Nurseries, horticulture, and plant cultivation" },
   { parameter: "Product selection", value: "Discuss your crop, growing setup, and required quantity" },
 ];
 
@@ -45,7 +45,7 @@ export default function CocopeatExpertise() {
       <div className="glass-panel feature-card p-6 sm:p-9">
         <span className="section-label">Our cocopeat expertise</span>
         <h2 id="expertise-heading" className="text-3xl sm:text-4xl font-bold mb-4">Know your cocopeat.</h2>
-        <p className="text-gray-500 leading-relaxed max-w-3xl">Explore coconut-based growing media for nurseries, horticulture, and modern agriculture, with product details, indicative technical specifications, and a closer look at the production process.</p>
+        <p className="text-gray-500 leading-relaxed max-w-3xl">Explore coconut-based growing media for nurseries, horticulture, and plant cultivation, with product details, indicative technical specifications, and a closer look at the production process.</p>
         <a href="#technical-specifications" className="company-text-link mt-4">View technical specifications</a>
       </div>
 
