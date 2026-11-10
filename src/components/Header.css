@@ -1,5 +1,5 @@
-.site-header.rich-header { padding-top: 8px; }
-.rich-header .header-bar { position: relative; isolation: isolate; border: 1px solid rgba(255,255,255,.98); border-radius: 23px; background: linear-gradient(125deg,rgba(250,254,247,.87),rgba(240,249,233,.7)); -webkit-backdrop-filter: blur(28px) saturate(145%); backdrop-filter: blur(28px) saturate(145%); box-shadow: inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.55),0 12px 35px -25px rgba(44,80,42,.4); }
+.site-header.rich-header { padding-top: 0; }
+.rich-header .header-bar { position: relative; isolation: isolate; border: 1px solid rgba(255,255,255,.98); border-radius: 0 0 23px 23px; background: linear-gradient(125deg,rgba(250,254,247,.87),rgba(240,249,233,.7)); -webkit-backdrop-filter: blur(28px) saturate(145%); backdrop-filter: blur(28px) saturate(145%); box-shadow: inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.55),0 12px 35px -25px rgba(44,80,42,.4); }
 .rich-header .header-bar::before { content: ''; position: absolute; z-index: -1; pointer-events: none; inset: 0; border-radius: inherit; background: radial-gradient(ellipse at 95% 5%,rgba(183,213,158,.22),transparent 55%); }
 .rich-header .header-brand { display: block; }
 .rich-header .header-brand > span { font-size: 9px; color: #67885d; }
@@ -38,8 +38,8 @@
 .mobile-menu-invitation:hover { background: rgba(255,255,255,.9); }
 @media (max-width:1279px) { .rich-header .mobile-menu-toggle { display: inline-flex; } }
 @media (max-width:767px) {
-  .site-header.rich-header { padding: 8px 10px 10px; }
-  .rich-header .header-bar { border-radius: 20px; }
+  .site-header.rich-header { padding: 0 10px 10px; }
+  .rich-header .header-bar { border-radius: 0 0 20px 20px; }
   .rich-header .rich-mobile-menu { top: calc(100% + 8px); padding: 13px; border-radius: 22px; }
   .mobile-menu-heading { margin-bottom: 11px; padding-bottom: 12px; }
   .mobile-menu-link { min-height: 68px; padding: 11px 12px; gap: 11px; border-radius: 15px; }

@@ -1,8 +1,8 @@
-import React from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowUpRight, ChevronRight, Layers, Leaf, Sprout } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useMainCategories, useSubCategories } from "../hooks/useProducts";
+import "./ProductMegaMenu.css";
 
 interface ProductMegaMenuProps {
   isVisible: boolean;
@@ -11,120 +11,58 @@ interface ProductMegaMenuProps {
   onMouseLeave?: () => void;
 }
 
-const ProductMegaMenu: React.FC<ProductMegaMenuProps> = ({
-  isVisible,
-  onClose,
-  onMouseEnter,
-  onMouseLeave,
-}) => {
-  const { data: mainCategoriesData } = useMainCategories();
-  const { data: subCategoriesData } = useSubCategories({
-    pageSize: 100, // Load more subcategories
-  });
-
-  if (!isVisible) return null;
+export default function ProductMegaMenu({ isVisible, onClose, onMouseEnter, onMouseLeave }: ProductMegaMenuProps) {
+  const main = useMainCategories();
+  const sub = useSubCategories({ pageSize: 100 });
+  const reducedMotion = useReducedMotion();
+  const categories = main.data?.data ?? [];
 
   return (
     <AnimatePresence>
       {isVisible && (
-        <>
-          <div
-            className="absolute left-0 top-full w-full z-50"
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-          >
-            <div className="h-3 w-full" />
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="nav-dropdown glass-panel max-h-[70svh] overflow-y-auto"
-            >
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <div className="nav-dropdown-grid mb-8">
-                {mainCategoriesData?.data?.map((category, index) => (
-                  <motion.div
-                    key={category.productMainCategoryId}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="space-y-3"
-                  >
-                    {/* Main Category Card */}
-                    <Link
-                      to={`/products?main=${category.productMainCategoryId}`} 
-                      onClick={onClose}
-                      className="block group"
-                    >
-                      <div className="rounded-lg group">
-                        <h3 className="font-bold text-emerald-950 text-base group-hover:text-emerald-700 transition-colors">
-                          {category.name}
-                        </h3>
-                      </div>
+        <motion.div className="product-menu-positioner" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}
+          initial={reducedMotion ? false : { opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: reducedMotion ? 0 : -6 }} transition={{ duration: reducedMotion ? 0 : 0.2, ease: "easeOut" }}>
+          <nav aria-label="Product collections" className="product-mega-menu">
+            <div className="product-menu-heading">
+              <div><span className="product-menu-eyebrow"><span /> Rooted in possibility</span><h2>Good things grow from nature.</h2></div>
+              <span className="product-menu-note"><Sprout size={16} aria-hidden="true" /> Discover our product collections</span>
+            </div>
+            <div className="product-menu-grid" aria-busy={main.isPending}>
+              {main.isPending && <p className="product-menu-status" role="status">Gathering our collections…</p>}
+              {!main.isPending && categories.length === 0 && <p className="product-menu-status" role="status">{main.isError ? "Collections are temporarily unavailable. You can still explore our products below." : "Explore our full collection below."}</p>}
+              {categories.map((category, index) => {
+                const Icon = /fibre|fiber|rope|coir products/i.test(category.name) ? Layers : Leaf;
+                const categoryUrl = `/products?main=${category.productMainCategoryId}`;
+                const children = sub.data?.data?.content?.filter(item => item.productMainCategory.productMainCategoryId === category.productMainCategoryId).slice(0, 8) ?? [];
+                return (
+                  <div key={category.productMainCategoryId} className="product-collection-card">
+                    <Link to={categoryUrl} onClick={onClose} className="product-collection-heading">
+                      <span className="product-collection-icon"><Icon size={23} strokeWidth={1.5} aria-hidden="true" /></span>
+                      <span className="product-collection-title"><span>Collection {String(index + 1).padStart(2, "0")}</span><h3>{category.name}</h3></span>
+                      <ArrowUpRight className="product-collection-arrow" size={19} aria-hidden="true" />
                     </Link>
-
-                    {/* Sub Categories List */}
-                    <motion.div
-                      className="space-y-1"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 + index * 0.1 }}
-                    >
-                      {subCategoriesData?.data?.content
-                        ?.filter(
-                          (sub) =>
-                            sub.productMainCategory.productMainCategoryId ===
-                            category.productMainCategoryId
-                        )
-                        ?.slice(0, 8)
-                        .map((subCategory) => (
-                          <Link
-                            key={subCategory.productSubCategoryId}
-                            to={`/products?main=${category.productMainCategoryId}&sub=${subCategory.productSubCategoryId}`}
-                            onClick={onClose}
-                            className="nav-dropdown-link block text-sm font-medium transition-colors px-3 py-2 -mx-3 rounded-lg"
-                          >
-                            {subCategory.name}
-                          </Link>
-                        ))}
-                      <Link
-                        to={`/products?main=${category.productMainCategoryId}`}
-                        onClick={onClose}
-                        className="inline-flex items-center text-sm text-emerald-600 hover:text-emerald-700 font-medium mt-2"
-                      >
-                        View all
-                        <ChevronRight className="w-3 h-3 ml-1" />
-                      </Link>
-                    </motion.div>
-                  </motion.div>
-                ))}
-              </div>
-                <div className="">
-                  <div className="w-full h-[2px] my-4 bg-emerald-600/50" />
-                  <Link
-                    to={`/products`}
-                    onClick={onClose}
-                    className="block group"
-                  >
-                    <div className="rounded-lg group flex w-full items-center justify-between">
-                      <h3 className="font-medium text-gray-800 text-base group-hover:text-emerald-700 transition-colors">
-                        Explore All Products
-                      </h3>
-                      <ChevronRight
-                        strokeWidth={2}
-                        className="w-4 h-4 text-gray-800 group-hover:text-emerald-700 transition-colors"
-                      />
-                    </div>
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </>
+                    <ul className="product-collection-links">
+                      {children.map(child => (
+                        <li key={child.productSubCategoryId}><Link to={`${categoryUrl}&sub=${child.productSubCategoryId}`} onClick={onClose}>
+                          <span className="product-link-dot" aria-hidden="true" /><span>{child.name}</span><ChevronRight size={16} aria-hidden="true" />
+                        </Link></li>
+                      ))}
+                    </ul>
+                    {sub.isPending && <p className="product-collection-status" role="status">Loading products…</p>}
+                    {sub.isError && <p className="product-collection-status">Browse this collection to see its products.</p>}
+                    <Link to={categoryUrl} onClick={onClose} className="product-collection-view">View collection <ArrowUpRight size={15} aria-hidden="true" /></Link>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="product-menu-footer">
+              <span>From coconut husk to new possibilities.</span>
+              <Link to="/products" onClick={onClose} className="product-menu-explore">Explore all products <span><ArrowUpRight size={18} aria-hidden="true" /></span></Link>
+            </div>
+          </nav>
+        </motion.div>
       )}
     </AnimatePresence>
   );
-};
-
-export default ProductMegaMenu;
+}

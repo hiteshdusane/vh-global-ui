@@ -17,6 +17,7 @@ const Header = () => {
   const [isMegaMenuVisible, setIsMegaMenuVisible] = useState(false);
   const headerShell = useRef<HTMLDivElement>(null);
   const menuToggle = useRef<HTMLButtonElement>(null);
+  const focusProductLinks = useRef(false);
   const reducedMotion = useReducedMotion();
   const timeout = useRef<ReturnType<typeof setTimeout>>();
   const location = useLocation();
@@ -34,6 +35,12 @@ const Header = () => {
     clearTimeout(timeout.current);
   }, [location]);
   useEffect(() => () => clearTimeout(timeout.current), []);
+  useEffect(() => {
+    if (isMegaMenuVisible && focusProductLinks.current) {
+      document.querySelector<HTMLAnchorElement>('#product-menu a')?.focus();
+      focusProductLinks.current = false;
+    }
+  }, [isMegaMenuVisible]);
   useEffect(() => {
     if (!isMenuOpen) return;
 
@@ -86,7 +93,13 @@ const Header = () => {
             <NavLink to="/" className="nav-link">Home</NavLink>
             <div className="flex items-center" onMouseEnter={openProducts} onMouseLeave={closeProducts}>
               <NavLink to="/products" className="nav-link">Products</NavLink>
-              <button className="nav-menu-toggle" aria-label="Browse product categories" aria-expanded={isMegaMenuVisible} aria-controls="product-menu" onClick={() => setIsMegaMenuVisible(!isMegaMenuVisible)}>
+              <button className="nav-menu-toggle" aria-label="Browse product categories" aria-expanded={isMegaMenuVisible} aria-controls="product-menu" onClick={() => setIsMegaMenuVisible(!isMegaMenuVisible)} onKeyDown={(event) => {
+                if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  if (isMegaMenuVisible) document.querySelector<HTMLAnchorElement>('#product-menu a')?.focus();
+                  else { focusProductLinks.current = true; openProducts(); }
+                }
+              }}>
                 <ChevronDown className={`w-4 h-4 transition-transform ${isMegaMenuVisible ? "rotate-180" : ""}`} />
               </button>
             </div>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Boxes, Droplets, Filter, Layers, Leaf, Maximize2, Sun, Palmtree, X } from "lucide-react";
 import ModalBackdrop from "./ModalBackdrop";
 
@@ -23,6 +23,96 @@ const outcomes = [
   "Compact blocks are ready for storage and hydration.",
 ];
 
+function ProductionImages({ step, preview = false }: { step: number; preview?: boolean }) {
+  const images = useRef<(HTMLImageElement | null)[]>([]);
+  const [ready, setReady] = useState<Set<number>>(() => new Set());
+  const [failed, setFailed] = useState<Set<number>>(() => new Set());
+  const [layers, setLayers] = useState<{ displayed: number | null; incoming: number | null }>({ displayed: null, incoming: null });
+  const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    let cancelled = false;
+    const cleanups = images.current.map((image, index) => {
+      if (!image) return () => {};
+      let started = false;
+      const fail = () => {
+        if (!cancelled) setFailed((previous) => new Set(previous).add(index));
+      };
+      const decode = async () => {
+        if (started) return;
+        started = true;
+        try {
+          // Decode the persistent DOM image itself, rather than a detached copy
+          // whose replacement would still need to be painted after mounting.
+          if (typeof image.decode === "function") await image.decode();
+          if (!image.naturalWidth) throw new Error("Image unavailable");
+          if (!cancelled) setReady((previous) => new Set(previous).add(index));
+        } catch {
+          fail();
+        }
+      };
+      image.addEventListener("load", decode);
+      image.addEventListener("error", fail);
+      if (image.complete) void decode();
+      return () => {
+        image.removeEventListener("load", decode);
+        image.removeEventListener("error", fail);
+      };
+    });
+    return () => {
+      cancelled = true;
+      cleanups.forEach((cleanup) => cleanup());
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!ready.has(step)) return;
+    if (layers.incoming === null && layers.displayed !== null && layers.displayed !== step && !reducedMotion) {
+      const layer = images.current[step]?.parentElement;
+      // A rapid return to the outgoing image can hide and reveal it within one
+      // browser frame. Commit its hidden style before revealing it, otherwise
+      // no CSS transition (and therefore no transitionend) would be generated.
+      if (layer) void window.getComputedStyle(layer).opacity;
+    }
+    setLayers((previous) => {
+      // Finish the current blend before starting the latest requested step.
+      // Intermediate selections never queue up or overwrite a newer request.
+      if (reducedMotion) return previous.displayed === step && previous.incoming === null ? previous : { displayed: step, incoming: null };
+      if (previous.incoming !== null || previous.displayed === step) return previous;
+      if (previous.displayed === null) return { displayed: step, incoming: null };
+      return { ...previous, incoming: step };
+    });
+  }, [step, ready, reducedMotion, layers.incoming, layers.displayed]);
+
+  const visibleStep = layers.incoming ?? layers.displayed;
+  return (
+    <span className={preview ? "production-preview-image production-image-layers" : "production-image-layers"}>
+      {stages.map((stage, index) => {
+        const incoming = layers.incoming === index;
+        const displayed = layers.displayed === index;
+        return (
+          <span key={stage.image} className="production-feature-image"
+            aria-hidden={visibleStep !== index}
+            // Keep stacking and opacity in the same DOM commit. A motion value
+            // updates opacity on a later frame and can expose the outgoing layer
+            // when React resets the completed incoming layer's z-index first.
+            style={{ opacity: incoming || displayed ? 1 : 0, zIndex: incoming ? 1 : 0,
+              transition: incoming && !reducedMotion ? "opacity 400ms ease-in-out" : "none" }}
+            onTransitionEnd={(event) => {
+              if (!incoming || event.target !== event.currentTarget || event.propertyName !== "opacity") return;
+              setLayers((previous) => previous.incoming === index ? { displayed: index, incoming: null } : previous);
+            }}>
+            <img ref={(image) => { images.current[index] = image; }}
+              src={`/images/cocopeat-process-${stage.image}.webp`} width={1536} height={1024}
+              alt={stage.alt} loading="eager" decoding="async" />
+          </span>
+        );
+      })}
+      {failed.has(step) && <span className="production-image-error" role="status">This illustration could not be loaded.{visibleStep !== null ? " Showing the previous illustration." : " Please choose another step."}</span>}
+    </span>
+  );
+}
+
 export default function CocopeatProduction() {
   const [activeStep, setActiveStep] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -30,7 +120,6 @@ export default function CocopeatProduction() {
   const stage = stages[activeStep];
   const Icon = stage.icon;
   const stepNumber = String(activeStep + 1).padStart(2, "0");
-  const imageUrl = `/images/cocopeat-process-${stage.image}.webp`;
   const controls = (
     <div className="production-controls">
       <button type="button" className="production-arrow" disabled={activeStep === 0} onClick={() => setActiveStep((step) => step - 1)} aria-label="Previous production step"><ArrowLeft className="w-5 h-5" aria-hidden="true" /></button>
@@ -52,12 +141,7 @@ export default function CocopeatProduction() {
         <div className="production-glow production-glow-gold" aria-hidden="true" />
         <div className="production-feature">
           <button type="button" className="production-image-surface" onClick={() => setPreviewOpen(true)} aria-label={`Enlarge illustration: ${stage.title}`}>
-            <AnimatePresence initial={false}>
-              <motion.span key={stage.image} className="production-feature-image"
-                initial={{ opacity: reducedMotion ? 1 : 0 }} animate={{ opacity: 1 }} exit={{ opacity: reducedMotion ? 1 : 0 }} transition={{ duration: reducedMotion ? 0 : 0.4 }}>
-                <img src={imageUrl} width={1536} height={1024} alt={stage.alt} decoding="async" />
-              </motion.span>
-            </AnimatePresence>
+            <ProductionImages step={activeStep} />
             <span className="production-image-topline"><span className="production-image-pill"><Leaf className="w-3.5 h-3.5" aria-hidden="true" /> A natural transformation</span><span className="production-zoom"><Maximize2 className="w-4 h-4" aria-hidden="true" /></span></span>
             <span className="production-image-caption"><span className="production-image-number">{stepNumber}</span><span><span className="production-image-eyebrow">Explore the process</span><strong>{stage.title}</strong></span><ArrowRight className="w-5 h-5" aria-hidden="true" /></span>
           </button>
@@ -97,7 +181,7 @@ export default function CocopeatProduction() {
       {previewOpen && <ModalBackdrop onClose={() => setPreviewOpen(false)} className="production-preview-backdrop">
         <div role="dialog" aria-modal="true" aria-labelledby="production-preview-heading" className="glass-panel modal-panel production-preview">
           <div className="production-preview-heading"><div><span className="production-stage-label">A closer look · Step {stepNumber}</span><h3 id="production-preview-heading">{stage.title}</h3></div><button type="button" className="production-arrow" onClick={() => setPreviewOpen(false)} aria-label="Close production image preview"><X className="w-5 h-5" /></button></div>
-          <img key={stage.image} src={imageUrl} width={1536} height={1024} alt={stage.alt} className="production-preview-image" />
+          <ProductionImages step={activeStep} preview />
           <p className="production-preview-description" aria-live="polite">{stage.description}</p>
           {controls}
         </div>
