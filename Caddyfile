@@ -16,6 +16,15 @@
         file_server
     }
 
+    handle /sitemap.xml {
+        header Content-Type "application/xml; charset=utf-8"
+        file_server
+    }
+
+    handle /robots.txt {
+        file_server
+    }
+
     handle {
         try_files {path} /index.html
         file_server

@@ -21,6 +21,8 @@ The Docker context excludes `.env.local`, credentials directories, local depende
 2. The container health check at `/health` should return 200.
 3. Visit `/`, refresh `/contact`, and refresh a valid `/products/<id>` URL.
 4. Verify product loading, GA4 Realtime, and a Google Sheets enquiry.
+5. Open `/sitemap.xml`: it must return HTTP 200 with XML containing the public page URLs, with an `application/xml` content type. Open `/robots.txt` and confirm it advertises `https://vhnglobal.com/sitemap.xml`. Both files are copied from `public/` into `dist/` by Vite and served directly by Caddy before the React fallback. Missing copies return 404 instead of the website HTML.
+6. After redeployment, submit `https://vhnglobal.com/sitemap.xml` in Google Search Console under **Sitemaps**. When adding confirmed public product URLs, update `public/sitemap.xml`; omit redirect aliases and unverified product IDs.
 
 For local container verification with Docker running:
 
