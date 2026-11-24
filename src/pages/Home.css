@@ -1,7 +1,7 @@
 .home-page { --home-green: #285c43; --home-muted: #586e60; position: relative; overflow: hidden; padding-bottom: 32px; background: radial-gradient(ellipse at 3% 4%,rgba(188,214,192,.5),transparent 28%),radial-gradient(ellipse at 100% 25%,rgba(228,210,176,.35),transparent 30%); }
 .home-container { width: min(1280px, 100% - 64px); margin-inline: auto; }
 .home-hero { position: relative; isolation: isolate; padding: 18px 0 0; }
-.home-ambient { position: absolute; z-index: -1; pointer-events: none; width: 650px; height: 650px; border-radius: 50%; filter: blur(50px); animation: home-drift 14s ease-in-out infinite alternate; }
+.home-ambient { position: absolute; z-index: -1; pointer-events: none; width: 650px; height: 650px; border-radius: 50%; animation: home-drift 14s ease-in-out infinite alternate; }
 .home-ambient-sage { top: -120px; right: -100px; background: radial-gradient(circle,rgba(159,196,163,.42),transparent 65%); }
 .home-ambient-sand { bottom: -260px; left: -160px; background: radial-gradient(circle,rgba(213,182,133,.25),transparent 65%); animation-delay: -7s; }
 .home-topline { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding-bottom: 24px; font-size: 10px; letter-spacing: .08em; color: #526a59; }
@@ -31,7 +31,7 @@
 .home-orbit { position: absolute; z-index: -1; inset: 0 -35px; border: 1px solid rgba(255,255,255,.7); border-radius: 50%; pointer-events: none; }
 .home-orbit-one { transform: rotate(-22deg) scale(1.04,.92); }
 .home-orbit-two { transform: rotate(24deg) scale(.9,1.08); border-color: rgba(93,135,93,.12); }
-.home-image-frame { position: relative; padding: 10px; border: 1px solid rgba(255,255,255,.95); border-radius: 36px; background: linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.22)); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); box-shadow: inset 0 1px 0 #fff,0 32px 75px -44px rgba(32,74,45,.6); will-change: transform; }
+.home-image-frame { position: relative; padding: 10px; border: 1px solid rgba(255,255,255,.95); border-radius: 36px; background: linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.22)); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); box-shadow: inset 0 1px 0 #fff,0 32px 75px -44px rgba(32,74,45,.6); }
 .home-hero-photo { position: relative; height: clamp(360px,35vw,505px); overflow: hidden; border-radius: 27px; background: #486447; }
 .home-hero-photo > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .home-hero-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,rgba(9,36,20,.12),transparent 30%,rgba(9,36,20,.15)); pointer-events: none; }
@@ -214,4 +214,23 @@
 }
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
   .home-image-frame, .home-floating-note, .home-image-caption, .home-collection-toolbar, .home-story-glass, .home-story-image-label, .home-benefit-card, .home-contact-glass { background-color: #edf4e7; }
+}
+
+/* Keep captions above both persistent image layers. */
+.home-hero-photo::after { z-index: 2; }
+.home-photo-tag, .home-image-caption { z-index: 3; }
+.home-scene-error { position: absolute; z-index: 4; inset: 50% 15px auto; padding: 12px; border-radius: 12px; background: #edf4e7; color: #285c43; font-size: 12px; }
+
+/* Large structural panels sample mostly soft background gradients. Keep their
+   translucent fills, borders and shadows; reserve live Firefox blur for photo
+   captions, tags and floating details where it contributes visible depth. */
+@supports (-moz-appearance: none) {
+  /* Same-session Firefox tests isolate continuous decoration plus perspective
+     as a repaint trigger. Keep the glass and interactive/reveal transitions. */
+  .home-ambient, .home-floating-note, .home-contact-orbit { animation: none; }
+  .home-hero-visual { perspective: none; }
+  .home-image-frame, .home-collection-toolbar, .home-page .collection-card.glass-panel,
+  .home-story-glass, .home-benefit-card, .home-contact-glass {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
 }

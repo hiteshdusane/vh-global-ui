@@ -1,0 +1,71 @@
+﻿/* Firefox uses an opaque theme: repeated user testing still found lag with the
+   gradient-based glass fallback. Keep layout and controls, avoid filtered and
+   transparent panel stacks. Other engines retain their existing theme. */
+@supports (-moz-appearance: none) {
+  :root { --glass-surface: #fff; --glass-border: #d7e2d7; --glass-shadow: none; --site-chrome-flat: #c7d8c5; }
+
+  /* Include pseudo-elements and body-portaled dialogs. Important is deliberate:
+     component hover states and future glass utilities must not re-enable these. */
+  .site-shell, .site-shell *, .site-shell *::before, .site-shell *::after,
+  body > .modal-backdrop, body > .modal-backdrop *,
+  body > .modal-backdrop *::before, body > .modal-backdrop *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    filter: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .site-shell,
+  .site-shell :is(.home-page, .catalog-rich, .contact-rich, .feature-section) {
+    background: #eef3ed;
+  }
+  .site-shell .page-content { animation: none; }
+  .site-shell :is(.home-ambient, .home-orbit, .home-contact-orbit, .catalog-orb,
+    .contact-orb, .production-glow, .contact-form-glow, .footer-rich-orbit) { display: none; }
+  .site-shell :is(.feature-section, .site-footer, .header-bar)::before { content: none; }
+
+  /* Opaque panels and photo captions keep their original spacing and radii. */
+  .site-shell .page-content :is(.glass-panel, .home-image-frame, .home-floating-note,
+    .home-image-caption, .home-story-glass, .home-story-image-label, .home-benefit-card,
+    .home-contact-glass, .home-contact-button, .home-collection-toolbar,
+    .production-image-caption, .production-step-button, .catalog-hero-image-label,
+    .contact-intro-note, .contact-story-shell, .contact-story-caption,
+    .contact-story-stamp, .contact-next-card, .contact-faq details) {
+    background: #fff;
+    border-color: #d7e2d7;
+  }
+  .site-shell :is(.header-bar, .product-mega-menu, .rich-mobile-menu, .frosted-select-menu) {
+    background: #f8faf5;
+    border-color: #d7e2d7;
+  }
+  .site-shell .page-content :is(input, textarea, select, .catalog-search,
+    .frosted-select-trigger, .catalog-main-filters button, .home-category-picker button,
+    .contact-topic-picker button) { background: #fff; }
+
+  /* Preserve selected, active and focus states without gradient or shadow rings. */
+  .site-shell .page-content :is(.catalog-main-filters, .catalog-sub-filters,
+    .home-category-picker, .contact-topic-picker, .catalog-views) button[aria-pressed="true"],
+  .site-shell .page-content .production-step-button[aria-pressed="true"],
+  .site-shell .header-bar .nav-link[aria-current="page"] {
+    background: #e1edd9;
+    border-color: #769568;
+  }
+  .site-shell :is(button, a, input, textarea, select, summary):focus-visible,
+  body > .modal-backdrop :is(button, a, input, textarea, select):focus-visible {
+    outline: 3px solid #188b6b;
+    outline-offset: 3px;
+  }
+  .site-shell :is(.btn-primary, .home-primary),
+  .site-shell .contact-form-bottom button { background: #285c43; color: #fff; }
+  .site-shell :is(.home-photo-tag, .contact-photo-badge, .company-visual-caption,
+    .production-image-pill, .production-zoom) { background: #173d30; color: #fff; }
+
+  .site-shell .site-footer { background: var(--site-chrome-flat); border-color: #b5c9b2; }
+  .site-shell .footer-rich :is(.footer-nav-panel, .footer-contact-link,
+    .footer-conversation, .footer-brand-logo) { background: #e6eee0; }
+  .site-shell .footer-rich .footer-invitation { background: #173d30; }
+
+  body > .modal-backdrop { background: rgba(9,32,24,.65); }
+  body > .modal-backdrop .modal-panel { background: #fff; border-color: #d7e2d7; }
+}

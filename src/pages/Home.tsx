@@ -1,10 +1,11 @@
-import { useState, useSyncExternalStore, type PointerEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from "react";
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowDown, ArrowRight, ArrowUpRight, Boxes, Check, Globe2, Layers, Leaf, Play, Sprout } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProducts } from "../hooks/useProducts";
 import ProductCard from "../components/ProductCard";
 import ErrorMessage from "../components/ErrorMessage";
+import HomeScenes from "../components/HomeScenes";
 import "./Home.css";
 
 const motionPreference = "(prefers-reduced-motion: reduce)";
@@ -31,6 +32,9 @@ export default function Home() {
   const [category, setCategory] = useState("all");
   const reducedMotion = useSyncExternalStore(subscribeToMotionPreference, getMotionPreference, () => true);
   const motionEnabled = !reducedMotion;
+  // Firefox repeatedly repaints the glass hero under continuously moving 3D layers.
+  // Keep reveal/crossfade motion, but leave its decorative frame flat in Firefox.
+  const tiltEnabled = motionEnabled && !CSS.supports("-moz-appearance", "none");
   const { data, isLoading, isError, refetch } = useProducts({ page: 0, pageSize: 100, sortBy: "name", sortDi: "asc" });
   const collectionFailed = isError || data?.success === false;
   const products = data?.data?.content ?? [];
@@ -48,13 +52,27 @@ export default function Home() {
   const springY = useSpring(pointerY, { stiffness: 100, damping: 22 });
   const rotateY = useTransform(springX, [-0.5, 0.5], [-3, 3]);
   const rotateX = useTransform(springY, [-0.5, 0.5], [3, -3]);
-  const moveImage = (event: PointerEvent<HTMLDivElement>) => {
-    if (!motionEnabled || event.pointerType !== "mouse") return;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    pointerX.set((event.clientX - bounds.left) / bounds.width - 0.5);
-    pointerY.set((event.clientY - bounds.top) / bounds.height - 0.5);
+  const pointerFrame = useRef<number | null>(null);
+  const pendingPointer = useRef({ x: 0, y: 0 });
+  const cancelPointerFrame = () => {
+    if (pointerFrame.current !== null) cancelAnimationFrame(pointerFrame.current);
+    pointerFrame.current = null;
   };
-  const resetImage = () => { pointerX.set(0); pointerY.set(0); };
+  useEffect(() => cancelPointerFrame, []);
+  const moveImage = (event: PointerEvent<HTMLDivElement>) => {
+    if (!tiltEnabled || event.pointerType !== "mouse") return;
+    pendingPointer.current = { x: event.clientX, y: event.clientY };
+    if (pointerFrame.current !== null) return;
+    const target = event.currentTarget;
+    pointerFrame.current = requestAnimationFrame(() => {
+      pointerFrame.current = null;
+      const bounds = target.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      pointerX.set((pendingPointer.current.x - bounds.left) / bounds.width - 0.5);
+      pointerY.set((pendingPointer.current.y - bounds.top) / bounds.height - 0.5);
+    });
+  };
+  const resetImage = () => { cancelPointerFrame(); pointerX.set(0); pointerY.set(0); };
   const reveal = {
     initial: motionEnabled ? { opacity: 0, y: 24 } : false as const,
     whileInView: { opacity: 1, y: 0 },
@@ -83,13 +101,11 @@ export default function Home() {
               </div>
               <div className="home-hero-footnote"><span className="home-origin-icon"><Globe2 className="w-5 h-5" aria-hidden="true" /></span><p>From Pune, India.<br /><strong>Open to a world of connections.</strong></p><a href="#home-collection" className="home-scroll-link" aria-label="Scroll to our product collection"><ArrowDown className="w-4 h-4" aria-hidden="true" /></a></div>
             </motion.div>
-            <div className="home-hero-visual" onPointerMove={moveImage} onPointerLeave={resetImage}>
+            <div className="home-hero-visual" onPointerMove={tiltEnabled ? moveImage : undefined} onPointerLeave={tiltEnabled ? resetImage : undefined}>
               <div className="home-orbit home-orbit-one" aria-hidden="true" /><div className="home-orbit home-orbit-two" aria-hidden="true" />
-              <motion.div className="home-image-frame" style={{ rotateX: motionEnabled ? rotateX : 0, rotateY: motionEnabled ? rotateY : 0 }}>
+              <motion.div className="home-image-frame" style={tiltEnabled ? { rotateX, rotateY } : undefined}>
                 <div className="home-hero-photo">
-                  <AnimatePresence initial={false}>
-                    <motion.img key={scene.image} src={`/images/cocopeat-process-${scene.image}.webp`} width={1536} height={1024} alt={scene.alt} fetchPriority="high" decoding="async" initial={{ opacity: motionEnabled ? 0 : 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: motionEnabled ? 0.55 : 0 }} />
-                  </AnimatePresence>
+                  <HomeScenes scenes={scenes} selected={sceneIndex} reducedMotion={reducedMotion} />
                   <span className="home-photo-tag"><span /> Explore our story</span>
                   <div className="home-image-caption" aria-live="polite"><span className="home-caption-icon"><SceneIcon className="w-5 h-5" aria-hidden="true" /></span><div><span>{scene.note}</span><strong>{scene.title}</strong></div><span className="home-caption-index">0{sceneIndex + 1}</span></div>
                 </div>
@@ -114,7 +130,7 @@ export default function Home() {
 
       <motion.section {...reveal} className="home-container home-story" aria-labelledby="home-story-heading">
         <div className="home-story-glass">
-          <Link to="/about#production-process" className="home-story-image" aria-label="Explore the seven-stage cocopeat production process"><img src="/images/cocopeat-drying-yard.png" width={1536} height={1024} loading="lazy" decoding="async" alt="Illustration of a cocopeat drying yard surrounded by coconut palms" /><span className="home-story-image-label"><span className="home-story-play"><Play className="w-5 h-5" aria-hidden="true" /></span><span>Follow the transformation<small>Explore the production journey</small></span><ArrowUpRight className="w-5 h-5" aria-hidden="true" /></span></Link>
+          <Link to="/about#production-process" className="home-story-image" aria-label="Explore the seven-stage cocopeat production process"><img src="/images/cocopeat-drying-yard.webp" width={1536} height={1024} loading="lazy" decoding="async" alt="Illustration of a cocopeat drying yard surrounded by coconut palms" /><span className="home-story-image-label"><span className="home-story-play"><Play className="w-5 h-5" aria-hidden="true" /></span><span>Follow the transformation<small>Explore the production journey</small></span><ArrowUpRight className="w-5 h-5" aria-hidden="true" /></span></Link>
           <div className="home-story-copy"><span className="section-label">A closer look</span><h2 id="home-story-heading">From husk.<br />To new <span>beginnings.</span></h2><p>There’s a story behind every block. Follow the coconut husk through separation, washing, drying, and compression to discover how cocopeat takes shape.</p><ol className="home-journey-stops"><li><Leaf aria-hidden="true" /><span>Natural origins</span></li><li><Layers aria-hidden="true" /><span>A considered process</span></li><li><Sprout aria-hidden="true" /><span>New growing possibilities</span></li></ol><Link to="/about#production-process" className="home-primary">Explore the 7 stages <ArrowRight className="w-4 h-4" aria-hidden="true" /></Link></div>
         </div>
       </motion.section>

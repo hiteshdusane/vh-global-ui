@@ -30,7 +30,7 @@ export default function About() {
               <Link to="/products" className="btn-primary inline-flex">Explore our products <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" /></Link>
             </div>
             <figure className="company-visual glass-panel">
-              <img src="/images/cocopeat-process-blocks.webp" width={1536} height={1024} fetchPriority="high" alt="Illustration of compressed cocopeat blocks during production" />
+              <img src="/images/cocopeat-process-blocks.webp" width={1536} height={1024} {...{ fetchpriority: "high" }} alt="Illustration of compressed cocopeat blocks during production" />
               <figcaption className="company-visual-caption glass-dark"><span className="text-xs uppercase tracking-widest text-emerald-100">Rooted in Nature, Growing Worldwide</span><p className="font-semibold text-lg mt-2">Coconut-based products. Worldwide connections.</p><span className="block mt-2 text-[10px] text-white/70">Product illustration</span></figcaption>
             </figure>
           </div>

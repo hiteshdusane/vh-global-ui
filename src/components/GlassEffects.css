@@ -1,0 +1,68 @@
+/* Reflections are clipped within each panel, leaving menus and focus rings free. */
+.site-shell .glass-effect-surface { position: relative; }
+.glass-reflection {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.glass-reflection::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 24%, rgba(255,255,255,.12) 36%, rgba(255,255,255,.65) 48%, rgba(221,243,230,.2) 57%, transparent 70%);
+  animation: glass-reflect 800ms cubic-bezier(.2,.65,.3,1) both;
+}
+@keyframes glass-reflect {
+  0% { transform: translateX(-100%); opacity: 0; }
+  18% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+/* Small selected controls retain their depth after the transient reflection. */
+.site-shell :is(.home-scene-selector, .home-category-picker, .catalog-main-filters, .catalog-sub-filters, .contact-topic-picker, .catalog-views) button[aria-pressed="true"] {
+  background: linear-gradient(120deg, rgba(199,228,207,.95), rgba(252,255,247,.9) 52%, rgba(214,235,200,.85));
+  border-color: #8aaf91;
+  color: #214f38;
+  box-shadow: inset 0 2px 0 #fff, inset 0 -2px 0 rgba(76,122,88,.12), 0 6px 16px -11px rgba(22,65,49,.5);
+}
+.site-shell :is(.home-scene-selector, .home-category-picker, .catalog-main-filters, .catalog-sub-filters, .contact-topic-picker) button {
+  min-height: 44px;
+}
+.site-shell :is(.home-scene-selector, .home-category-picker, .catalog-main-filters, .catalog-sub-filters, .contact-topic-picker) button:active,
+.site-shell :is(.mobile-menu-link, .mobile-menu-toggle, .production-step-button, .btn-primary, .btn-secondary, .home-primary):active {
+  border-color: #769f7b;
+  background-color: #d8eacb;
+  box-shadow: inset 0 2px 5px rgba(27,75,48,.16), inset 0 0 0 1px rgba(255,255,255,.85);
+}
+
+@media (max-width: 767px), (hover: none) {
+  /* Static refraction gives touch devices depth even before any interaction. */
+  .site-shell :is(.home-benefit-card, .feature-card, .collection-card.glass-panel, .home-story-glass, .home-contact-glass, .catalog-discovery, .contact-next-card) {
+    background: radial-gradient(ellipse at 0 0, rgba(255,255,255,.86), transparent 60%), linear-gradient(135deg, rgba(240,251,243,.72), rgba(224,240,211,.46));
+    border-color: rgba(255,255,255,.98);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.96), inset 0 -1px 0 rgba(124,164,127,.18), 0 14px 30px -22px rgba(27,75,48,.4);
+  }
+  .site-shell .home-benefit-line { width: 60px; background: linear-gradient(90deg, #518760, #b9d3a8); }
+  .site-shell .home-scene-selector button[aria-pressed="true"] .home-scene-dot { width: 7px; height: 7px; }
+  .site-shell .mobile-menu-link[aria-current="page"] { border-left: 3px solid #719b62; }
+}
+
+/* Keep the resolved Firefox rendering strategy: no filters or shadows. A
+   short white reflection and a solid selected edge do not sample the backdrop. */
+@supports (-moz-appearance: none) {
+  .glass-reflection::after {
+    inset: 0 35%;
+    background: rgba(255,255,255,.5);
+  }
+  .site-shell :is(.home-scene-selector, .home-category-picker, .catalog-main-filters, .catalog-sub-filters, .contact-topic-picker, .catalog-views) button[aria-pressed="true"] {
+    background: #dbeacb;
+    border-color: #769568;
+    border-bottom-color: #52784a;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-reflection { display: none; }
+}

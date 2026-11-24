@@ -104,7 +104,7 @@ function ProductionImages({ step, preview = false }: { step: number; preview?: b
             }}>
             <img ref={(image) => { images.current[index] = image; }}
               src={`/images/cocopeat-process-${stage.image}.webp`} width={1536} height={1024}
-              alt={stage.alt} loading="eager" decoding="async" />
+              alt={stage.alt} loading={preview ? "eager" : "lazy"} decoding="async" />
           </span>
         );
       })}
@@ -157,7 +157,7 @@ export default function CocopeatProduction() {
               </motion.div>
             </div>
             <div className="production-detail-footer">
-              <div className="production-progress" aria-hidden="true"><motion.span animate={{ width: `${((activeStep + 1) / stages.length) * 100}%` }} transition={{ duration: reducedMotion ? 0 : 0.35 }} /></div>
+              <div className="production-progress" aria-hidden="true"><motion.span style={{ width: "100%", transformOrigin: "left" }} animate={{ scaleX: (activeStep + 1) / stages.length }} transition={{ duration: reducedMotion ? 0 : 0.35 }} /></div>
               {controls}
             </div>
           </div>

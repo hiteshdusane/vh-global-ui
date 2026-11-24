@@ -1,5 +1,5 @@
-.site-footer.footer-rich { --color-ink: #294b3b; --color-muted: #4d6858; --color-brand: #416948; margin: 48px 20px 20px; border: 1px solid rgba(220,242,219,.2); border-radius: 34px; background: linear-gradient(130deg,rgba(185,205,187,.96),rgba(165,190,174,.94) 55%,rgba(195,209,181,.96)); -webkit-backdrop-filter: blur(30px) saturate(140%); backdrop-filter: blur(30px) saturate(140%); box-shadow: inset 0 1px 0 rgba(235,250,229,.22),inset 0 -1px 0 rgba(235,250,229,.05),0 30px 65px -40px rgba(53,83,36,.45); }
-.site-footer.footer-rich::before { background: radial-gradient(ellipse at 0% 0%,rgba(133,184,145,.12),transparent 55%),radial-gradient(ellipse at 95% 90%,rgba(199,172,111,.08),transparent 50%); }
+.site-footer.footer-rich { --color-ink: var(--site-chrome-ink); --color-muted: #4d6858; --color-brand: var(--site-chrome-accent); margin: 48px 20px 20px; border: 1px solid rgba(220,242,219,.2); border-radius: 34px; background: var(--site-chrome-surface); -webkit-backdrop-filter: blur(30px) saturate(140%); backdrop-filter: blur(30px) saturate(140%); box-shadow: inset 0 1px 0 rgba(235,250,229,.22),inset 0 -1px 0 rgba(235,250,229,.05),0 30px 65px -40px rgba(53,83,36,.45); }
+.site-footer.footer-rich::before { background: var(--site-chrome-glow); }
 .footer-rich-orbit { position: absolute; z-index: -1; pointer-events: none; right: -60px; top: -100px; width: 500px; height: 500px; color: rgba(52,86,60,.09); transform: rotate(-16deg); }
 .footer-rich-orbit svg { width: 100%; height: 100%; stroke-width: .45; }
 .footer-rich .footer-inner { max-width: 1280px; padding: clamp(20px,3vw,38px); }
@@ -98,7 +98,16 @@
   .footer-rich .footer-conversation:hover, .footer-rich .footer-conversation:hover .footer-conversation-arrow, .footer-rich .footer-link:hover .footer-link-arrow, .footer-rich .footer-link:focus-visible .footer-link-arrow, .footer-rich .footer-contact-link:hover .footer-contact-arrow, .footer-rich .footer-back-top:hover .footer-back-top-icon { transform: none; }
 }
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
-  .site-footer.footer-rich { background: #b8cabb; }
+  .site-footer.footer-rich { background: var(--site-chrome-flat); }
   .footer-nav-panel, .footer-rich .footer-contact-link { background: #c8d6c2; }
   .footer-rich .footer-invitation { background: #173d30; }
+}
+
+/* Opaque fills already hide the backdrop; retain their borders and highlights. */
+.footer-rich :is(.footer-invitation, .footer-conversation, .footer-brand-logo) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+@supports (-moz-appearance: none) {
+  .site-footer.footer-rich, .footer-nav-panel, .footer-rich .footer-contact-link {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
 }

@@ -8,7 +8,8 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     optimizeDeps: {
-      exclude: ["lucide-react"],
+      // Prebundle the icon barrel instead of serving its entire module graph.
+      include: ["lucide-react"],
     },
     server: {
       host: true,

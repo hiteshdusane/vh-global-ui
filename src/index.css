@@ -4,6 +4,11 @@
 
 @layer base {
   :root {
+    --site-chrome-surface: linear-gradient(130deg, rgba(185,205,187,.96), rgba(165,190,174,.94) 55%, rgba(195,209,181,.96));
+    --site-chrome-glow: radial-gradient(ellipse at 0% 0%, rgba(133,184,145,.12), transparent 55%), radial-gradient(ellipse at 95% 90%, rgba(199,172,111,.08), transparent 50%);
+    --site-chrome-flat: #b8cabb;
+    --site-chrome-ink: #294b3b;
+    --site-chrome-accent: #416948;
     --color-ink: #173c33;
     --color-muted: #526b63;
     --color-brand: #08765a;
