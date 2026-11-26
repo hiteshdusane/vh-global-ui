@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import type { ProductResponse } from "../types/api";
 import { productApi } from "../services/api";
 import ProductEnquiryDialog from "./ProductEnquiryDialog";
+import { trackEvent } from "../services/analytics";
 
 interface ProductCardProps {
   product: ProductResponse;
@@ -28,9 +29,12 @@ export default function ProductCard({ product, viewMode = "grid" }: ProductCardP
         {product.productSubCategory?.name && <span className="collection-card-category"><Leaf className="w-3.5 h-3.5 shrink-0" aria-hidden="true" /><span>{product.productSubCategory.name}</span></span>}
         <h3><Link to={detailUrl}>{product.name}</Link></h3>
         <p>{product.shortDescription || "Contact our team for product details, availability, and your specific requirements."}</p>
-        <div className="collection-card-actions"><Link to={detailUrl} aria-label={`Explore ${product.name}`}>Explore product <ArrowUpRight className="w-4 h-4" aria-hidden="true" /></Link><button type="button" onClick={() => setEnquiryOpen(true)} aria-label={`Enquire about ${product.name}`}>Enquire</button></div>
+        <div className="collection-card-actions"><Link to={detailUrl} aria-label={`Explore ${product.name}`}>Explore product <ArrowUpRight className="w-4 h-4" aria-hidden="true" /></Link><button type="button" onClick={() => {
+          trackEvent("enquiry_open", { form_source: "product", product_id: product.productId });
+          setEnquiryOpen(true);
+        }} aria-label={`Enquire about ${product.name}`}>Enquire</button></div>
       </div>
     </article>
-    {enquiryOpen && <ProductEnquiryDialog productName={product.name} onClose={() => setEnquiryOpen(false)} />}
+    {enquiryOpen && <ProductEnquiryDialog productId={product.productId} productName={product.name} onClose={() => setEnquiryOpen(false)} />}
   </>;
 }

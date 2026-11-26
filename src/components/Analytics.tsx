@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { trackEvent, trackPageView } from "../services/analytics";
+import { startScrollTracking, trackEvent, trackPageView } from "../services/analytics";
 
 const redirects = new Set(["/company", "/cocopeat-spec", "/cocopeat-specs"]);
 
@@ -9,6 +9,11 @@ export default function Analytics() {
 
   useEffect(() => {
     if (!redirects.has(pathname)) trackPageView(pathname);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (redirects.has(pathname)) return;
+    return startScrollTracking();
   }, [pathname]);
 
   useEffect(() => {

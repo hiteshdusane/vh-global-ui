@@ -7,11 +7,18 @@ import ts from 'typescript';
 // Exercise the real service with browser and build-environment fixtures.
 function setup(env = {}, overrides = {}) {
   const scripts = [];
+  const listeners = new Map();
   const window = {
     location: { origin: 'https://vhnglobal.com', pathname: '/contact', search: '?q=private' },
+    innerHeight: 500, scrollY: 0,
+    addEventListener: (name, handler) => listeners.set(name, handler),
+    removeEventListener: (name, handler) => {
+      if (listeners.get(name) === handler) listeners.delete(name);
+    },
     ...overrides,
   };
   const document = {
+    visibilityState: 'visible', documentElement: { scrollHeight: 2000 },
     referrer: 'https://example.com/private?email=private@example.com',
     createElement: () => ({}),
     head: { appendChild: (script) => scripts.push(script) },
@@ -23,10 +30,10 @@ function setup(env = {}, overrides = {}) {
   });
   const exports = {};
   runInNewContext(outputText, {
-    exports, window, document, URL,
+    exports, window, document, URL, URLSearchParams,
     __env: { PROD: true, VITE_GA_MEASUREMENT_ID: 'G-TEST123', ...env },
   });
-  return { api: exports, window, scripts, commands: () => (window.dataLayer || []).map((args) => Array.from(args)) };
+  return { api: exports, window, document, listeners, scripts, commands: () => Array.from(window.dataLayer || [], (args) => Array.from(args)) };
 }
 
 test('missing/invalid IDs and development mode do not load or collect analytics', () => {
@@ -76,4 +83,94 @@ test('a blocked Google tag does not throw into the application', () => {
   const fixture = setup({}, { gtag() { throw new Error('blocked'); } });
   assert.doesNotThrow(() => fixture.api.trackPageView('/contact'));
   assert.doesNotThrow(() => fixture.api.trackEvent('generate_lead', { form_source: 'contact' }));
+});
+
+test('campaign attribution uses only short slug labels from the landing URL', () => {
+  const fixture = setup({}, {
+    location: { origin: 'https://vhnglobal.com', pathname: '/', search: '?utm_source=linkedin&utm_medium=social&utm_campaign=cocopeat_2026&q=private@example.com&utm_term=private' },
+  });
+  fixture.api.trackPageView('/');
+  const config = fixture.commands().find(([command]) => command === 'config')[2];
+  assert.equal(config.campaign_source, 'linkedin');
+  assert.equal(config.campaign_medium, 'social');
+  assert.equal(config.campaign_name, 'cocopeat_2026');
+  assert.equal(JSON.stringify(fixture.commands()).includes('private'), false);
+
+  for (const value of ['private@example.com', 'a'.repeat(65), 'https://example.com', 'a name']) {
+    const rejected = setup({}, {
+      location: { origin: 'https://vhnglobal.com', pathname: '/', search: `?utm_campaign=${encodeURIComponent(value)}` },
+    });
+    rejected.api.trackPageView('/');
+    assert.equal(rejected.commands().find(([command]) => command === 'config')[2].campaign_name, undefined);
+  }
+});
+
+test('enquiry funnel deduplicates starts, retains product context, and keeps errors separate from leads', () => {
+  const fixture = setup();
+  const enquiry = fixture.api.createEnquiryAnalytics('product', 'product-123');
+  enquiry.start();
+  enquiry.start();
+  enquiry.attempt();
+  enquiry.error('unconfirmed');
+  let events = fixture.commands().filter(([command]) => command === 'event');
+  assert.deepEqual(events.map(([, name]) => name), ['enquiry_start', 'enquiry_attempt', 'enquiry_error']);
+  assert.equal(events[2][2].error_type, 'unconfirmed');
+  enquiry.attempt();
+  enquiry.confirmed();
+  events = fixture.commands().filter(([command]) => command === 'event');
+  assert.equal(events.filter(([, name]) => name === 'generate_lead').length, 1);
+  assert.equal(events.at(-1)[2].delivery_status, 'confirmed');
+  for (const [, , parameters] of events) {
+    assert.equal(parameters.product_id, 'product-123');
+    assert.equal(parameters.form_source, 'product');
+    assert.equal(parameters.page_location, 'https://vhnglobal.com/contact');
+  }
+  enquiry.start();
+  assert.equal(fixture.commands().filter(([, name]) => name === 'enquiry_start').length, 2);
+});
+
+test('autofilled submissions and validation errors establish a start without a confirmed lead', () => {
+  for (const action of ['attempt', 'error']) {
+    const fixture = setup();
+    const enquiry = fixture.api.createEnquiryAnalytics('contact');
+    enquiry[action]('validation');
+    const events = fixture.commands().filter(([command]) => command === 'event');
+    assert.equal(events[0][1], 'enquiry_start');
+    assert.equal(events.length, 2);
+    assert.equal(events.some(([, name]) => name === 'generate_lead'), false);
+    assert.equal(events[0][2].product_id, undefined);
+  }
+});
+
+test('scroll thresholds emit once per page lifecycle and listeners are cleaned up', () => {
+  const fixture = setup();
+  const stop = fixture.api.startScrollTracking();
+  const scroll = fixture.listeners.get('scroll');
+  scroll();
+  assert.equal(fixture.commands().length, 0);
+  fixture.window.scrollY = 500;
+  scroll();
+  scroll();
+  fixture.window.scrollY = 1400;
+  scroll();
+  const depths = () => fixture.commands().filter(([, name]) => name === 'scroll_depth').map(([, , params]) => params.percent_scrolled);
+  assert.deepEqual(depths(), [25, 50, 75, 90]);
+  stop();
+  assert.equal(fixture.listeners.has('scroll'), false);
+  const stopNext = fixture.api.startScrollTracking();
+  fixture.listeners.get('scroll')();
+  assert.deepEqual(depths(), [25, 50, 75, 90, 25, 50, 75, 90]);
+  stopNext();
+});
+
+test('short pages and hidden tabs do not emit scroll depth', () => {
+  const fixture = setup();
+  fixture.api.startScrollTracking();
+  fixture.window.scrollY = 100;
+  fixture.document.documentElement.scrollHeight = 500;
+  fixture.listeners.get('scroll')();
+  fixture.document.documentElement.scrollHeight = 2000;
+  fixture.document.visibilityState = 'hidden';
+  fixture.listeners.get('scroll')();
+  assert.equal(fixture.commands().length, 0);
 });

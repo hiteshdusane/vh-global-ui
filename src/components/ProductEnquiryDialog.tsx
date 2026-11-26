@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { ArrowUpRight, CheckCircle2, Loader2, X } from "lucide-react";
 import { submitEnquiry } from "../services/enquiry";
 import ModalBackdrop from "./ModalBackdrop";
-import { trackEvent } from "../services/analytics";
+import { createEnquiryAnalytics } from "../services/analytics";
 
 const emptyForm = { name: "", email: "", contact: "", message: "" };
 
-export default function ProductEnquiryDialog({ productName, onClose }: { productName: string; onClose: () => void }) {
+export default function ProductEnquiryDialog({ productName, productId, onClose }: { productName: string; productId: string; onClose: () => void }) {
+  const enquiryAnalytics = useMemo(() => createEnquiryAnalytics("product", productId), [productId]);
   const [form, setForm] = useState(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -24,14 +25,17 @@ export default function ProductEnquiryDialog({ productName, onClose }: { product
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting || submitted) return;
+    enquiryAnalytics.attempt();
     const enquiry = Object.fromEntries(Object.entries(form).map(([key, value]) => [key, value.trim()])) as typeof form;
     if (!enquiry.name || !enquiry.message) {
+      enquiryAnalytics.error("validation");
       setStatus({ type: "error", message: "Please enter your name and requirements." });
       const field = event.currentTarget.elements.namedItem(!enquiry.name ? "name" : "message");
       if (field instanceof HTMLElement) field.focus();
       return;
     }
     if (!import.meta.env.VITE_APP_SCRIPT_EXCEL_URL?.trim()) {
+      enquiryAnalytics.error("unavailable");
       setStatus({ type: "error", message: "The enquiry form is temporarily unavailable. Please email info@vhnglobal.com or call +91 72768 00399." });
       return;
     }
@@ -39,10 +43,11 @@ export default function ProductEnquiryDialog({ productName, onClose }: { product
     setStatus(null);
     try {
       await submitEnquiry({ ...enquiry, subject: `Product enquiry: ${productName}` }, "product");
-      trackEvent("generate_lead", { form_source: "product", delivery_status: "confirmed" });
+      enquiryAnalytics.confirmed();
       setStatus({ type: "success", message: "Your enquiry has been submitted. Thank you for contacting VHN Global." });
       setForm(emptyForm);
     } catch {
+      enquiryAnalytics.error("unconfirmed");
       setStatus({ type: "error", message: "We couldn’t confirm your enquiry. Please email info@vhnglobal.com before sending it again." });
     } finally {
       setIsSubmitting(false);
@@ -63,7 +68,7 @@ export default function ProductEnquiryDialog({ productName, onClose }: { product
         ) : (
           <>
         <p className="product-enquiry-product mb-5">Enquiring about <strong>{productName}</strong></p>
-        <form onSubmit={handleSubmit} aria-busy={isSubmitting}>
+        <form onSubmit={handleSubmit} onChangeCapture={enquiryAnalytics.start} onInvalidCapture={() => enquiryAnalytics.error("validation")} aria-busy={isSubmitting}>
           <fieldset disabled={isSubmitting} className="grid gap-4 min-w-0">
             <legend className="sr-only">Your contact details and product requirements</legend>
             <div className="grid sm:grid-cols-2 gap-4">

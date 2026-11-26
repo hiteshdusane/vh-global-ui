@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowUpRight, ChevronRight, Mail, Tag } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import CategoryPanel from "../components/CategoryPanel";
@@ -17,6 +17,16 @@ export default function ProductPage() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const product = productData?.data;
+  const lastViewedProduct = useRef("");
+  useEffect(() => {
+    if (!product || product.productId === lastViewedProduct.current) return;
+    lastViewedProduct.current = product.productId;
+    trackEvent("product_view", {
+      product_id: product.productId,
+      product_name: product.name,
+      product_category: product.productSubCategory?.name ?? "uncategorized",
+    });
+  }, [product]);
 
   if (isLoading) return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"><div className="glass-panel feature-card min-h-64 flex flex-col items-center justify-center gap-4 p-8"><LoadingSpinner size="lg" /><p className="text-gray-500">Loading product details...</p></div></div>;
   if (error || !product) return <div className="max-w-3xl mx-auto px-4 py-10"><Link to="/products" className="company-text-link mb-5"><ArrowLeft className="w-4 h-4" />Back to products</Link><ErrorMessage message="We couldn't load this product. Please try again or browse our product range." onRetry={() => { void refetch(); }} /></div>;
@@ -90,7 +100,7 @@ export default function ProductPage() {
           </article>
         </div>
       </div>
-      {enquiryOpen && <ProductEnquiryDialog productName={product.name} onClose={() => setEnquiryOpen(false)} />}
+      {enquiryOpen && <ProductEnquiryDialog key={product.productId} productId={product.productId} productName={product.name} onClose={() => setEnquiryOpen(false)} />}
     </div>
   );
 }

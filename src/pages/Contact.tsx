@@ -1,9 +1,9 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, CheckCircle2, ChevronDown, Copy, Globe2, Layers, Leaf, Loader2, Mail, MapPin, MessageCircle, Package, Phone, Send, ShieldCheck, Sprout } from "lucide-react";
 import { Link } from "react-router-dom";
 import { submitEnquiry } from "../services/enquiry";
-import { trackEvent } from "../services/analytics";
+import { createEnquiryAnalytics, trackEvent } from "../services/analytics";
 import "./Contact.css";
 
 const initialForm = { name: "", email: "", contact: "", subject: "product-info", message: "" };
@@ -15,6 +15,7 @@ const subjects = [
 ];
 
 export default function Contact() {
+  const enquiryAnalytics = useMemo(() => createEnquiryAnalytics("contact"), []);
   const [formData, setFormData] = useState(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -30,6 +31,7 @@ export default function Contact() {
   const copyEmail = async () => {
     try {
       await navigator.clipboard.writeText("info@vhnglobal.com");
+      trackEvent("contact_click", { contact_method: "email_copy" });
       setCopyStatus("Email address copied.");
     } catch {
       setCopyStatus("Please copy info@vhnglobal.com or use the email link.");
@@ -38,14 +40,17 @@ export default function Contact() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting) return;
+    enquiryAnalytics.attempt();
     const enquiry = Object.fromEntries(Object.entries(formData).map(([key, value]) => [key, value.trim()])) as typeof formData;
     if (!enquiry.name || !enquiry.message) {
+      enquiryAnalytics.error("validation");
       setStatus({ type: "error", message: "Please enter your name and message." });
       const field = event.currentTarget.elements.namedItem(!enquiry.name ? "name" : "message");
       if (field instanceof HTMLElement) field.focus();
       return;
     }
     if (!import.meta.env.VITE_APP_SCRIPT_EXCEL_URL?.trim()) {
+      enquiryAnalytics.error("unavailable");
       setStatus({ type: "error", message: "The enquiry form is temporarily unavailable. Please email info@vhnglobal.com or call +91 72768 00399 to reach us directly." });
       return;
     }
@@ -53,10 +58,11 @@ export default function Contact() {
     setStatus(null);
     try {
       await submitEnquiry(enquiry);
-      trackEvent("generate_lead", { form_source: "contact", delivery_status: "confirmed" });
+      enquiryAnalytics.confirmed();
       setStatus({ type: "success", message: "Your enquiry has been submitted. Thank you for connecting with VHN Global." });
       setFormData(initialForm);
     } catch {
+      enquiryAnalytics.error("unconfirmed");
       setStatus({ type: "error", message: "We couldn’t confirm your enquiry. Please email info@vhnglobal.com before sending it again." });
     } finally {
       setIsSubmitting(false);
@@ -77,7 +83,7 @@ export default function Contact() {
             <div className="contact-form-glow" aria-hidden="true" />
             <div className="contact-form-heading"><div><p className="contact-small-label">Make the first connection</p><h2 id="enquiry-heading">What’s on your mind?</h2></div><motion.span className="contact-send-icon" aria-hidden="true" whileHover={reducedMotion ? undefined : { rotate: -12, scale: 1.06 }}><Send className="w-5 h-5" /></motion.span></div>
             <p className="contact-form-description">A few details are all it takes. Choose a topic and tell us what your business needs.</p>
-            <form onSubmit={handleSubmit} className="contact-form" aria-busy={isSubmitting}>
+            <form onSubmit={handleSubmit} onChangeCapture={enquiryAnalytics.start} onInvalidCapture={() => enquiryAnalytics.error("validation")} className="contact-form" aria-busy={isSubmitting}>
               <fieldset disabled={isSubmitting} className="contact-fieldset">
                 <legend className="sr-only">Your enquiry details</legend>
                 <div className="contact-topic-section"><p id="contact-topic-label" className="contact-topic-label">I’d like to talk about</p><div className="contact-topic-picker" role="group" aria-labelledby="contact-topic-label">{subjects.map(({ value, label, detail, icon: Icon }) => <motion.button type="button" key={value} aria-pressed={formData.subject === value} onClick={() => { setFormData((current) => ({ ...current, subject: value })); setStatus(null); }} whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.99 }}><span className="contact-topic-icon"><Icon className="w-4 h-4" aria-hidden="true" /></span><span><strong>{label}</strong><small>{detail}</small></span><span className="contact-topic-check" aria-hidden="true">{formData.subject === value && <Check className="w-3 h-3" />}</span></motion.button>)}</div><input type="hidden" name="subject" value={formData.subject} /></div>
